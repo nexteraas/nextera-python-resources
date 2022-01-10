@@ -3,8 +3,7 @@ from setuptools import setup
 setup(
     name='nextera-python-resources',
     version='0.99',
-    packages=['resources', 'resources.plots', 'resources.plots.3d_lineplot', 'nextera-python-resources',
-              'nextera-phagedisplayanalysis', 'nextera-phagedisplayanalysis.ranks'],
+    packages=['nextera_utils','nextera_phagedisplayanalysis', 'nextera_phagedisplayanalysis.ranks'],
     url='',
     license='',
     author='Ralf Neumann',
