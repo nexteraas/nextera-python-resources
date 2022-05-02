@@ -5,8 +5,8 @@ from nextera_utils.docker_interop import DockerInterop
 
 print('Creating Diversity report...')
 
-# fn = "C:/temp/py_ncm/a7119b1e-9541-4a32-b9f2-4395a27caa43/arguments.csv"
-# docker = DockerInterop(fn, 'a7119b1e-9541-4a32-b9f2-4395a27caa43');
+# fn = "C:/docker_data_exchange/in/462447df-6e01-47c3-8b85-c615b6dfdc55/arguments.csv"
+# docker = DockerInterop(fn, '462447df-6e01-47c3-8b85-c615b6dfdc55');
 docker = DockerInterop(sys.argv[1])
 
 input_fns = docker.get_input_filenames()
