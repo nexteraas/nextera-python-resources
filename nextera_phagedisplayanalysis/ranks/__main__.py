@@ -12,8 +12,6 @@ print('Creating Ranks report...')
 
 docker = DockerInterop(sys.argv[1])
 
-
-print(docker.get_input_filenames()[1])
 input_fns = docker.get_input_filenames()
 output_fns = docker.get_output_filenames()
 for fn in zip(input_fns, output_fns):
