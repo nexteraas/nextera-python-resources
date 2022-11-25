@@ -7,6 +7,7 @@ import numpy as np
 from nextera_utils.docker_interop import DockerInterop
 from nextera_utils.circle_heatmap import CircleHeatmap
 import pandas as pd
+import nextera_utils.utils as utils
 
 
 class HeatmapPlotter():
@@ -17,24 +18,31 @@ class HeatmapPlotter():
         self._debug_key = DockerInterop.get_instance().get_debug_key()
 
     def plot_single_heatmap(self, out_fn):
-        plt.figure()
-        if self._summarize_fraction:
-            title = "Sum [Fraction]"
-        else:
-            title = "Count [Fraction]"
-        plt.tick_params(axis='both', labelsize=6)
-        df=self._data_df.transpose()
+        if self._data_df.empty: return
+        df = self._data_df.transpose()
         df = df.reindex(sorted(df.columns), axis=1)
-        df.sort_index(ascending=True, inplace=True)
-        sns.heatmap(df, xticklabels=True, yticklabels=True, cmap='rocket', annot=False)
-        plt.title(title)
-        plt.tight_layout()
-        if self._debug_key is None:
-            plt.savefig(out_fn)
-        else:
-            plt.show()
+        utils.plot_single_heatmap(df, self._summarize_fraction, out_fn)
+
+
+        # plt.figure()
+        # if self._summarize_fraction:
+        #     title = "Sum [Fraction]"
+        # else:
+        #     title = "Count [Fraction]"
+        # plt.tick_params(axis='both', labelsize=6)
+        # df=self._data_df.transpose()
+        # df = df.reindex(sorted(df.columns), axis=1)
+        # df.sort_index(ascending=True, inplace=True)
+        # sns.heatmap(df, xticklabels=True, yticklabels=True, cmap='rocket', annot=False)
+        # plt.title(title)
+        # plt.tight_layout()
+        # if self._debug_key is None:
+        #     plt.savefig(out_fn)
+        # else:
+        #     plt.show()
 
     def plot_difference_heatmaps(self, out_fn):
+        if self._data_df.empty: return
         fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(14, 6))
         if self._summarize_fraction:
             value_col_a = "Sum [Fraction](1) - Sum [Fraction](2)"
@@ -47,10 +55,7 @@ class HeatmapPlotter():
         axes[0].tick_params(axis='both', labelsize=5)
         axes[1].tick_params(axis='both', labelsize=5)
         plt.tight_layout()
-        if self._debug_key is None:
-            plt.savefig(out_fn)
-        else:
-            plt.show()
+        utils.saveFigure(out_fn)
 
     def _create_heatmap_subtraction(self, value_col, title, axis):
         df = self._data_df.copy()

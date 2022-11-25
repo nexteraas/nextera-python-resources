@@ -1,4 +1,5 @@
 import svgutils.compose as sc
+import nextera_utils.utils as utils
 
 
 class PanningPathPlotter:
@@ -10,26 +11,26 @@ class PanningPathPlotter:
 
     def plot(self, out_fn):
         img_width=str(self._image_display_size) + 'px'
-        img_heigth = (len(self._images) * self._image_display_size) \
+        img_height = (len(self._images) * self._image_display_size) \
                      + (len(self._images) * self._label_height)
-        img_heigth = str(img_heigth) + 'px'
+        img_height = str(img_height) + 'px'
         panels=[]
         for key, image in self._images.items():
             panel = self._createPanel(key, image)
             panels.append(panel)
         n = len(panels)
-        if(n==1):
-            fig = sc.Figure(img_width, img_heigth, panels[0])
-        elif (n==2):
-            fig = sc.Figure(img_width, img_heigth, panels[0], panels[1])
-        elif (n == 3):
-            fig = sc.Figure(img_width, img_heigth, panels[0], panels[1], panels[2])
-        elif (n == 4):
-            fig = sc.Figure(img_width, img_heigth, panels[0], panels[1], panels[2], panels[3])
-        elif (n == 5):
-            fig = sc.Figure(img_width, img_heigth, panels[0], panels[1], panels[2], panels[3], panels[4])
-        elif (n == 6):
-            fig = sc.Figure(img_width, img_heigth, panels[0], panels[1], panels[2], panels[3], panels[4], panels[5])
+        if n == 1:
+            fig = sc.Figure(img_width, img_height, panels[0])
+        elif n == 2:
+            fig = sc.Figure(img_width, img_height, panels[0], panels[1])
+        elif n == 3:
+            fig = sc.Figure(img_width, img_height, panels[0], panels[1], panels[2])
+        elif n == 4:
+            fig = sc.Figure(img_width, img_height, panels[0], panels[1], panels[2], panels[3])
+        elif n == 5:
+            fig = sc.Figure(img_width, img_height, panels[0], panels[1], panels[2], panels[3], panels[4])
+        elif n == 6:
+            fig = sc.Figure(img_width, img_height, panels[0], panels[1], panels[2], panels[3], panels[4], panels[5])
         else:
             raise ValueError('Max no of panels == 6, exceeded!')
         fig=fig.tile(1,n)

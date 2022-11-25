@@ -3,6 +3,7 @@ import numpy as np
 from nextera_utils.docker_interop import DockerInterop
 import seaborn as sns
 import enum
+import nextera_utils.utils as utils
 
 
 class Mode(enum.Enum):
@@ -22,6 +23,7 @@ class BarchartPlotter:
         self._debug_key = DockerInterop.get_instance().get_debug_key()
 
     def plot(self, out_fn):
+        if self._data_df.empty: return
         fig = plt.figure()
         values_header=list(self._data_df.columns)[-1]
         col_header=self._get_col_header()
@@ -46,10 +48,7 @@ class BarchartPlotter:
             plt.xticks(rotation=90)
         plt.legend(list(df.index.values))
         plt.tight_layout()
-        if self._debug_key is None:
-            plt.savefig(out_fn)
-        else:
-            plt.show()
+        utils.saveFigure(out_fn)
 
     def _get_col_header(self):
         if self._mode==Mode.cdr3_length:

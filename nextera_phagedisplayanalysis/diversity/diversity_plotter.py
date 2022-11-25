@@ -5,6 +5,8 @@ import numpy as np
 import matplotlib.ticker as ticker
 from textwrap import wrap
 from nextera_utils.docker_interop import DockerInterop
+import nextera_utils.utils as utils
+
 
 class DiversityPlotter:
     def __init__(self, data_df):
@@ -12,6 +14,7 @@ class DiversityPlotter:
         self._debug_key=DockerInterop.get_instance().get_debug_key()
 
     def plot(self, out_fn):
+        if self._data_df.empty: return
         fig, axs = plt.subplots(2, 2)
         col_names=self._infer_colnames()
         # self._plot_axis(axs[0, 0], 'ENS [chain1:V]', False)
@@ -22,13 +25,9 @@ class DiversityPlotter:
         self._plot_axis(axs[0, 1], col_names[1], False)
         self._plot_axis(axs[1, 0], col_names[2], False)
         self._plot_axis(axs[1, 1], col_names[3], False)
-        self.plot_pannings(fig)
+        self._plot_pannings(fig)
         plt.tight_layout()
-        # plt.savefig(out_fn)
-        if self._debug_key is None:
-            plt.savefig(out_fn)
-        else:
-            plt.show()
+        utils.saveFigure(out_fn)
 
     def _infer_colnames(self):
         out = []
@@ -44,7 +43,7 @@ class DiversityPlotter:
             out.append('ENS [chain1+2]')
         return out
 
-    def plot_pannings(self, fig):
+    def _plot_pannings(self, fig):
         xlabels = list(self._data_df.index.values)
         xlabels = ", ".join(xlabels)
         xlabels = 'Diversities for pannings: ' + xlabels

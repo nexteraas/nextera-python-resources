@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.patches import Ellipse
-
+import nextera_utils.utils as utils
 from nextera_utils.docker_interop import DockerInterop
 
 
@@ -12,6 +12,7 @@ class RanksPlotter:
         self._debug_key=DockerInterop.get_instance().get_debug_key()
 
     def plot(self, out_fn):
+        if self._data_df.empty: return
         categories = []
         values = []
         labels = []
@@ -28,10 +29,7 @@ class RanksPlotter:
         plt.xlim([0, no_of_pannings])
         self._add_relative_freqs_indications(no_of_pannings, categories, values, rel_freq_categories, ax)
         plt.tight_layout()
-        if self._debug_key is None:
-            plt.savefig(out_fn)
-        else:
-            plt.show()
+        utils.saveFigure(out_fn)
 
     def _extract_values(self, categories, values, labels, rel_freq_categories):
         for index, row in self._data_df.iterrows():

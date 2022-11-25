@@ -21,7 +21,6 @@ for fn in zip(input_fns, output_fns):
     if 'Details_' in fn[0]:
         sampling_props_plotter.plot_details(fn[1])
     else:
-        if len(data_df)>0:
-            sampling_props_plotter.plot_overview(fn[1])
+        sampling_props_plotter.plot_overview(fn[1])
 
 

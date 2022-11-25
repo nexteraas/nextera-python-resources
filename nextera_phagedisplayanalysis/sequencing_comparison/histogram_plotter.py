@@ -4,6 +4,7 @@ from matplotlib.patches import Ellipse
 import numpy as np
 import enum
 from nextera_utils.docker_interop import DockerInterop
+import nextera_utils.utils as utils
 
 
 class HistogramPlotter:
@@ -15,12 +16,12 @@ class HistogramPlotter:
         self._debug_key = DockerInterop.get_instance().get_debug_key()
 
     def plot(self, out_fn):
+        if self._data_df.empty: return
         data1 = self._data_df.iloc[:,0]
         data2 = self._data_df.iloc[:, 1]
         keys1 = list(data1.keys())
         keys2 = list(data2.keys())
         fig = plt.figure()
-        # fig = plt.figure(figsize=(10, 5))
         plt.bar(keys1, list(data1), color='red', alpha=0.4, width=0.8)
         plt.bar(keys2, list(data2), color='blue', alpha=0.4, width=0.8)
         plt.legend(['Pair item 1','Pair item 2'])
@@ -35,10 +36,7 @@ class HistogramPlotter:
             plt.xlabel("V gene")
             plt.xticks(fontsize=8, rotation=90)
         plt.tight_layout()
-        if self._debug_key is None:
-            plt.savefig(out_fn)
-        else:
-            plt.show()
+        utils.saveFigure(out_fn)
 
 
 class Mode(enum.Enum):

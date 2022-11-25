@@ -4,8 +4,6 @@ from nextera_phagedisplayanalysis.ranks.ranks_plotter import RanksPlotter
 from nextera_utils.docker_interop import DockerInterop
 
 print('Creating Ranks report...')
-# for a in sys.argv:
-#     print('arg: ' + a)
 
 # fn = 'C:/docker_data_exchange/in/a7119b1e-9541-4a32-b9f2-4395a27caa43/arguments.csv'
 # docker = DockerInterop(fn, 'a7119b1e-9541-4a32-b9f2-4395a27caa43');

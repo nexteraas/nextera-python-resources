@@ -6,8 +6,8 @@ from nextera_phagedisplayanalysis.paired_genes_circos_plots.panning_path_plotter
 
 print('Creating paired gene circos plots report...')
 
-#fn = "C:/docker_data_exchange/in/cfe2bdf8-7014-449d-ac11-0558c9b50fce/arguments.csv"
-#docker = DockerInterop(fn, 'cfe2bdf8-7014-449d-ac11-0558c9b50fce');
+#fn = "C:/docker_data_exchange/in/68f84e18-4b88-4fc0-b144-a9ffc13e7966/arguments.csv"
+#docker = DockerInterop(fn, '68f84e18-4b88-4fc0-b144-a9ffc13e7966');
 
 docker = DockerInterop(sys.argv[1])
 
@@ -21,11 +21,14 @@ else:
     summarize_fractions=False
 
 label_size=docker.get_info_value(0, 'circosLabelSize')
+circos_radius=docker.get_info_value(0, 'circosRadius')
+circos_label_space=docker.get_info_value(0, 'circosLabelSpace')
+circos_label_space='dims(image,radius)-' + str(circos_label_space) + 'p'
 
 for fns in zip(input_fns, output_fns):
     in_fn = fns[0]
     out_fn= fns[1]
-    CircosExecutor.execute_circos(label_size, in_fn, out_fn)
+    CircosExecutor.execute_circos(label_size, circos_radius, circos_label_space, in_fn, out_fn)
 
 counter=len(input_fns)
 infos=docker.get_infos()

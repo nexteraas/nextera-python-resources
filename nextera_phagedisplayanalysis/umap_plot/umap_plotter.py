@@ -10,21 +10,23 @@ class UmapPlotter:
 
     def __init__(self, data_df, n_neighbors=15, min_dist=0.1, n_components=2, metric='euclidean'):
         self._debug_key = DockerInterop.get_instance().get_debug_key()
-        scaled_features = StandardScaler().fit_transform(data_df)
-        self._data_df = pd.DataFrame(scaled_features, index=data_df.index, columns=data_df.columns)
-        #self._data_df = self._data_df.head(1000)
-        self._reducer = umap.UMAP(n_neighbors=n_neighbors, min_dist=min_dist,
-                                  n_components=n_components, metric=metric)
-        self._mapper = self._reducer.fit(self._data_df)
+        self._data_df = data_df
+        if not self._data_df.empty:
+            scaled_features = StandardScaler().fit_transform(data_df)
+            self._data_df = pd.DataFrame(scaled_features, index=data_df.index, columns=data_df.columns)
+            #self._data_df = self._data_df.head(1000)
+            self._reducer = umap.UMAP(n_neighbors=n_neighbors, min_dist=min_dist,
+                                      n_components=n_components, metric=metric)
+            self._mapper = self._reducer.fit(self._data_df)
 
     def plot(self, out_fn, draw_custom_umap=True, draw_circle_highlights=True, colors=None):
+        if self._data_df.empty: return
         fig = None
         if draw_custom_umap:
             self._plot_custom_umap(self._reducer, self._data_df, colors, colors, draw_circle_highlights)
         else:
             ax = umap.plot.points(self._mapper)
             fig = ax.get_figure()
-
         if self._debug_key is None:
             if fig is None:
                 plt.savefig(out_fn)
@@ -34,6 +36,7 @@ class UmapPlotter:
             plt.show()
 
     def _plot_custom_umap(self, reducer, df, colors, highlights, draw_circle_highlights):
+        if self._data_df.empty: return
         fig=plt.figure()
         colors = self._create_colors(self._data_df, colors)
         embedding = reducer.transform(df)
