@@ -8,6 +8,7 @@ from nextera_utils.docker_interop import DockerInterop
 from nextera_utils.circle_heatmap import CircleHeatmap
 import pandas as pd
 import nextera_utils.utils as utils
+import nextera_utils.heatmap_plotter as utils_heatmap_plotter
 
 
 class HeatmapPlotter():
@@ -21,7 +22,13 @@ class HeatmapPlotter():
         if self._data_df.empty: return
         df = self._data_df.transpose()
         df = df.reindex(sorted(df.columns), axis=1)
-        utils.plot_single_heatmap(df, self._summarize_fraction, out_fn)
+        if self._summarize_fraction:
+            title = "Sum of fractions"
+        else:
+            title = "Counts"
+        heatmap_plotter=utils_heatmap_plotter.HeatmapPlotter(df, title, sns_cmap='rocket')
+        heatmap_plotter.plot(out_fn)
+        #utils.plot_single_heatmap(df, self._summarize_fraction, out_fn)
 
 
         # plt.figure()

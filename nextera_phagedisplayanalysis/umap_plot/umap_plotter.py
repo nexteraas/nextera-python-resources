@@ -16,7 +16,7 @@ class UmapPlotter:
             self._data_df = pd.DataFrame(scaled_features, index=data_df.index, columns=data_df.columns)
             #self._data_df = self._data_df.head(1000)
             self._reducer = umap.UMAP(n_neighbors=n_neighbors, min_dist=min_dist,
-                                      n_components=n_components, metric=metric)
+                                      n_components=n_components, metric=metric, low_memory=True)
             self._mapper = self._reducer.fit(self._data_df)
 
     def plot(self, out_fn, draw_custom_umap=True, draw_circle_highlights=True, colors=None):
