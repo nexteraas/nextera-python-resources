@@ -4,6 +4,7 @@ import umap.plot
 import pandas as pd
 from nextera_utils.docker_interop import DockerInterop
 from sklearn.preprocessing import StandardScaler
+from sklearn.compose import ColumnTransformer
 
 
 class UmapPlotter:
@@ -12,12 +13,25 @@ class UmapPlotter:
         self._debug_key = DockerInterop.get_instance().get_debug_key()
         self._data_df = data_df
         if not self._data_df.empty:
-            scaled_features = StandardScaler().fit_transform(data_df)
+            scaled_features = self._scale_df(data_df)
+            # scaled_features = StandardScaler().fit_transform(data_df)
             self._data_df = pd.DataFrame(scaled_features, index=data_df.index, columns=data_df.columns)
             #self._data_df = self._data_df.head(1000)
             self._reducer = umap.UMAP(n_neighbors=n_neighbors, min_dist=min_dist,
                                       n_components=n_components, metric=metric, low_memory=True)
             self._mapper = self._reducer.fit(self._data_df)
+
+    def _scale_df(self, df):
+        std_cols=[]
+        for col in df.columns:
+            one_hot_col = df[col].isin([0, 1]).all()
+            if not one_hot_col:
+                std_cols.append(col)
+        ct = ColumnTransformer([
+            ('somename', StandardScaler(), std_cols)
+        ], remainder='passthrough')
+        out=ct.fit_transform(df)
+        return out
 
     def plot(self, out_fn, draw_custom_umap=True, draw_circle_highlights=True, colors=None):
         if self._data_df.empty: return

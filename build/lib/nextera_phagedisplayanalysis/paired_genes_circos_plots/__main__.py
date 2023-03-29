@@ -2,7 +2,9 @@ import sys
 
 from nextera_utils.docker_interop import DockerInterop
 from nextera_utils.circos_executor import CircosExecutor
-from nextera_phagedisplayanalysis.paired_genes_circos_plots.panning_path_plotter import PanningPathPlotter
+from nextera_phagedisplayanalysis.paired_gene_usage.panning_path_plotter import PanningPathPlotter
+import nextera_utils.heatmap_plotter as utils_heatmap_plotter
+
 
 print('Creating paired gene circos plots report...')
 
@@ -28,7 +30,18 @@ circos_label_space='dims(image,radius)-' + str(circos_label_space) + 'p'
 for fns in zip(input_fns, output_fns):
     in_fn = fns[0]
     out_fn= fns[1]
-    CircosExecutor.execute_circos(label_size, circos_radius, circos_label_space, in_fn, out_fn)
+    tag = docker.get_tag(in_fn)
+    if tag == 'heatmap':
+        df = docker.read_csv(in_fn, 0)
+        df = df.transpose()
+        if summarize_fractions:
+            title = "Sum of fractions"
+        else:
+            title = "Counts"
+        heatmap_plotter = utils_heatmap_plotter.HeatmapPlotter(df, title, sns_cmap='rocket')
+        heatmap_plotter.plot(out_fn)
+    else:
+        CircosExecutor.execute_circos(label_size, circos_radius, circos_label_space, in_fn, out_fn)
 
 counter=len(input_fns)
 infos=docker.get_infos()

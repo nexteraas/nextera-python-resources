@@ -17,19 +17,8 @@ summarize_fractions=True
 for fns in zip(input_fns, output_fns):
     in_fn = fns[0]
     out_fn= fns[1]
-    print (out_fn)
     tag=docker.get_tag(in_fn)
-    if tag == 'paired_gene_usage':
-        df = docker.read_csv(in_fn, 0)
-        df = df.transpose()
-        if summarize_fractions:
-            title = "Sum of fractions"
-        else:
-            title = "Counts"
-        heatmap_plotter=utils_heatmap_plotter.HeatmapPlotter(df, title, sns_cmap='rocket')
-        heatmap_plotter.plot(out_fn)
-    elif tag == 'peptide_composition':
-        df = docker.read_csv(in_fn, 0)
-        title = ''
-        heatmap_plotter = utils_heatmap_plotter.HeatmapPlotter(df, title, sns_cmap='rocket')
-        heatmap_plotter.plot(out_fn)
+    df = docker.read_csv(in_fn, 0)
+    title = ''
+    heatmap_plotter = utils_heatmap_plotter.HeatmapPlotter(df, title, sns_cmap='rocket')
+    heatmap_plotter.plot(out_fn)

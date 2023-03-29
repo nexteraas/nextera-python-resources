@@ -5,8 +5,8 @@ from nextera_utils.docker_interop import DockerInterop
 
 print('Creating UMAP report...')
 
-fn = 'C:/docker_data_exchange/in/8fa55a33-9442-4e3c-84a2-a3f282a5adf5/arguments.csv'
-#docker = DockerInterop(fn, '8fa55a33-9442-4e3c-84a2-a3f282a5adf5');
+# fn = 'C:/docker_data_exchange/in/6a619555-f226-4665-8aba-27df19c2dc4d/arguments.csv'
+# docker = DockerInterop(fn, '6a619555-f226-4665-8aba-27df19c2dc4d');
 docker = DockerInterop(sys.argv[1])
 
 print(docker.get_input_filenames()[0])
