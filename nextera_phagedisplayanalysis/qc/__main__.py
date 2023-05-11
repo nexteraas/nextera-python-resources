@@ -5,8 +5,8 @@ from nextera_utils.docker_interop import DockerInterop
 
 print('Creating quality control report...')
 
-# fn = "C:/docker_data_exchange/in/b64efe4e-0673-4ecc-8f5e-eeb279f7517a/arguments.csv"
-# docker = DockerInterop(fn, 'b64efe4e-0673-4ecc-8f5e-eeb279f7517a');
+# fn = "C:/docker_data_exchange/in/281d8877-ddef-4e89-ac12-444b9088dac0/arguments.csv"
+# docker = DockerInterop(fn, '281d8877-ddef-4e89-ac12-444b9088dac0');
 
 docker = DockerInterop(sys.argv[1])
 

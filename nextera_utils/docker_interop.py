@@ -103,11 +103,12 @@ class DockerInterop:
 
     def get_info_value(self, index, key):
         info = self.get_info(index)
-        for i in info:
-            tmp = i.split('=')
-            if len(tmp) == 2:
-                if tmp[0] == key:
-                    return tmp[1]
+        if info is not None:
+            for i in info:
+                tmp = i.split('=')
+                if len(tmp) == 2:
+                    if tmp[0] == key:
+                        return tmp[1]
         return None
 
     def _create_debug_fn(self, fn):

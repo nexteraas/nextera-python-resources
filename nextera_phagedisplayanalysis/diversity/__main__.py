@@ -6,8 +6,8 @@ from nextera_utils.docker_interop import DockerInterop
 
 print('Creating Diversity report...')
 
-# fn = "C:/docker_data_exchange/in/bad09945-0f9d-45a6-b26d-cf91f449b481/arguments.csv"
-# docker = DockerInterop(fn, 'bad09945-0f9d-45a6-b26d-cf91f449b481');
+# fn = "C:/docker_data_exchange/in/73d75304-129d-4699-84a3-e2ea66286fe8/arguments.csv"
+# docker = DockerInterop(fn, '73d75304-129d-4699-84a3-e2ea66286fe8');
 docker = DockerInterop(sys.argv[1])
 
 
