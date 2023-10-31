@@ -9,6 +9,7 @@ import nextera_utils.utils as utils
 class Mode(enum.Enum):
     cdr3_length = 1
     gene_usage = 2
+    n_inserts = 3
 
 
 class BarchartPlotter:
@@ -49,6 +50,29 @@ class BarchartPlotter:
         plt.legend(list(df.index.values))
         plt.tight_layout()
         utils.saveFigure(out_fn)
+
+    def plot_n_inserts(self, out_fn):
+        if self._data_df.empty: return
+        df = self._data_df.dropna(axis=0)
+        fig = plt.figure()
+        row_no = df.shape[0]
+        palette = sns.color_palette('hls', n_colors=row_no)
+        i = 0
+        for index, row in df.iterrows():
+            plt.bar(i, row[0], 0.5, color=palette[i])
+            i += 1
+        #s=list(self._data_df.iloc[:, 0])
+        #lbs=range(0,len(s))
+        #plt.xticks(lbs, s, fontsize=8)
+        plt.xticks([])
+        plt.xlabel(None)
+        plt.ylabel(self._get_ylabel())
+        if self._mode == Mode.n_inserts:
+            plt.xticks(rotation=90)
+        plt.legend(list(df.index.values))
+        plt.tight_layout()
+        utils.saveFigure(out_fn)
+
 
     def _get_col_header(self):
         if self._mode==Mode.cdr3_length:

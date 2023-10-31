@@ -1,6 +1,5 @@
 import ntpath
 import pandas as pd
-from numpy.testing._private.parameterized import param
 
 
 class DockerInterop:
@@ -88,8 +87,9 @@ class DockerInterop:
             if self._is_info_header_column(col):
                 key=col[len(DockerInterop._INFOS_HEADER_PREFIX):]
                 s = self._args[col].iloc[0]
-                s = s.split('\t')
-                out[key]  = s
+                if s == s:
+                    s = s.split('\t')
+                    out[key]  = s
         return out
 
     def get_info(self, index):
@@ -140,3 +140,12 @@ class DockerInterop:
             return ''
         out = s[:index + 1]
         return out
+
+    @staticmethod
+    def parse_java_boolean(b):
+        if b == 'true':
+            return True
+        elif b == 'false':
+            return False
+        else:
+            raise ValueError('Could not parse Java boolean')

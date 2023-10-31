@@ -32,6 +32,8 @@ class HistogramPlotter:
             plt.ylabel("Count")
         if self._mode==Mode.Cdr3Usage:
             plt.xlabel("CDR3 length")
+        elif self._mode == Mode.NInserts:
+            plt.xlabel("N inserts")
         elif self._mode==Mode.GeneUsage:
             plt.xlabel("V gene")
             plt.xticks(fontsize=8, rotation=90)

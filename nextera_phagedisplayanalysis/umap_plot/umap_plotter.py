@@ -5,8 +5,9 @@ import pandas as pd
 from nextera_utils.docker_interop import DockerInterop
 from sklearn.preprocessing import StandardScaler
 from sklearn.compose import ColumnTransformer
-
-
+import datashader as ds
+import colorcet as cc
+from datashader.mpl_ext import dsshow, alpha_colormap
 class UmapPlotter:
 
     def __init__(self, data_df, n_neighbors=15, min_dist=0.1, n_components=2, metric='euclidean'):
@@ -37,7 +38,8 @@ class UmapPlotter:
         if self._data_df.empty: return
         fig = None
         if draw_custom_umap:
-            self._plot_custom_umap(self._reducer, self._data_df, colors, colors, draw_circle_highlights)
+            #self._plot_custom_umap(self._reducer, self._data_df, colors, colors, draw_circle_highlights)
+            self._plot_ds_custom_umap(self._reducer, self._data_df, colors, colors, draw_circle_highlights)
         else:
             ax = umap.plot.points(self._mapper)
             fig = ax.get_figure()
@@ -63,6 +65,50 @@ class UmapPlotter:
             # handles, labels = scatter.legend_elements(prop="sizes", alpha=0.6)
             # ax_list = fig.axes
             # legend2 = ax_list[0].legend(handles, labels, loc="upper right", title="Sizes")
+
+    def _plot_ds_custom_umap(self, reducer, df, colors, highlights, draw_circle_highlights):
+        if self._data_df.empty: return
+        fig=plt.figure()
+        ax = fig.add_subplot(111)
+        colors = self._create_colors(self._data_df, colors)
+        embedding = reducer.transform(df)
+        tmp_df = pd.DataFrame(embedding, columns=['Col1', 'Col2'])
+        #fig, ax = plt.subplots(figsize=(30, 30))
+        #the_cmap='viridis_r'
+        the_cmap='inferno_r'
+        #the_cmap = 'Blues_r'
+        #artist = dsshow(tmp_df, ds.Point('Col1', 'Col2'), norm='eq_hist', cmap=the_cmap, ax=ax)
+        #the_norm='linear'
+        the_norm = 'eq_hist'
+        artist = dsshow(tmp_df, ds.Point('Col1', 'Col2'), plot_height=1000, norm=the_norm, cmap=the_cmap, fignum=0)
+        #fig.colorbar(artist, label='ta [K]', shrink=0.3, pad=0.02)
+        #plt.savefig('plot_ICON_ta_' + date + '_r2b9_dsshow.png', bbox_inches='tight', dpi=150)
+        #plt.gca().set_aspect('equal', 'datalim')
+        x_min=tmp_df['Col1'].min()
+        x_max = tmp_df['Col1'].max()
+        y_min = tmp_df['Col2'].min()
+        y_max = tmp_df['Col2'].max()
+        #plt.xlim([-100, 100])
+        ax.set_xlim([x_min, x_max])
+        #plt.ylim([-100, 100])
+        ax.set_ylim([y_min, y_max])
+        if draw_circle_highlights:
+            missing_highlights = self._do_draw_circle_highlights(highlights, df, embedding)
+            if missing_highlights > 0:
+                plt.title('(' + str(missing_highlights) + ' highlights not found)', fontsize=8, y=-0.01)
+        return
+
+        dsshow(tmp_df, ds.Point('Col1', 'Col2'), norm='eq_hist', cmap="inferno_r");
+
+        # agg = ds.Canvas().points(tmp_df, 'Col1', 'Col2')
+        # ds.tf.set_background(ds.tf.shade(agg, cmap=cc.fire), "black")
+
+        #scatter=plt.scatter(embedding[:, 0], embedding[:, 1], c=colors, alpha=0.2, s=1)
+        plt.gca().set_aspect('equal', 'datalim')
+        if draw_circle_highlights:
+            missing_highlights = self._do_draw_circle_highlights(highlights, df, embedding)
+            if missing_highlights>0:
+                plt.title('(' + str(missing_highlights) + ' highlights not found)', fontsize=8,  y=-0.01)
 
     def _do_draw_circle_highlights(self, colors, df, coords):
         found_seq_ids = 0

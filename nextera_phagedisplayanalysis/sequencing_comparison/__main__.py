@@ -9,8 +9,8 @@ from nextera_utils.circos_executor import CircosExecutor
 
 print('Creating Sequencing comparison report...')
 
-# fn = "C:/docker_data_exchange/in/4b71fe78-4f10-4d2a-88a6-53b1ac78a58a/arguments.csv"
-# docker = DockerInterop(fn, '4b71fe78-4f10-4d2a-88a6-53b1ac78a58a');
+# fn = "C:/docker_data_exchange/in/971d4254-2b00-433c-83fa-12de4602e86e/arguments.csv"
+# docker = DockerInterop(fn, '971d4254-2b00-433c-83fa-12de4602e86e');
 
 docker = DockerInterop(sys.argv[1])
 
@@ -34,6 +34,9 @@ for fns in zip(input_fns, output_fns):
     if tag=='cdr3_usage':
         hist_plotter = HistogramPlotter(data_df, summarize_fractions, histMode.Cdr3Usage)
         hist_plotter.plot(out_fn)
+    elif tag == 'n_inserts':
+        barchart_plotter = BarchartPlotter(data_df, False, barMode.n_inserts)
+        barchart_plotter.plot_n_inserts(out_fn)
     elif tag=='gene_usage':
         hist_plotter = HistogramPlotter(data_df, summarize_fractions, histMode.GeneUsage)
         hist_plotter.plot(out_fn)
