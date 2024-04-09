@@ -15,13 +15,14 @@ print('Creating Sequence logos report...')
 
 docker = DockerInterop(sys.argv[1])
 
-input_fns = docker.get_input_filenames()
-output_fns = docker.get_output_filenames()
+# input_fns = docker.get_input_filenames()
+# output_fns = docker.get_fig_output_filenames()
+data_items = docker.get_data_items()
 summarize_fractions = docker.get_info_value(0, 'summarize_fractions')
-for fns in zip(input_fns, output_fns):
-    in_fn = fns[0]
-    out_fn = fns[1]
-    tag = docker.get_tag(in_fn)
+for item in data_items:
+    in_fn = item[0]
+    out_fn = item[1]
+    tag = item[3]
     df = docker.read_csv(in_fn, 0)
     if tag == 'heatmap':
         sequence=None

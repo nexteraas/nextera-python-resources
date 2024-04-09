@@ -1,11 +1,10 @@
 import ntpath
 import pandas as pd
+import numpy as np
 
 
 class DockerInterop:
-    _INPUT_HEADER_PREFIX = "input_fn_"
-    _INPUT_TAGS_HEADER_PREFIX = "input_fn_tags"
-    _OUTPUT_HEADER_PREFIX = "output_fn_"
+    _DATA_ITEM_HEADER_PREFIX = 'data_'
     _INFOS_HEADER_PREFIX = "info_"
     _ARGS_FN = "arguments.csv"
     _EXCEPTION_FN = "exception.txt"
@@ -23,58 +22,56 @@ class DockerInterop:
         return DockerInterop._INSTANCE
 
     def __init__(self, args_fn, debug_key=None):
-        self._args = self.read_csv(args_fn)
-        self._input_fn_tags = self._load_input_fn_tags()
+        if args_fn is not None:
+            self._args = self.read_csv(args_fn)
         self._debug_key = debug_key
         DockerInterop._INSTANCE = self
 
     def get_debug_key(self):
         return self._debug_key
 
-    def read_csv(self, fn, index_col=None):
-        df = pd.read_csv(fn, sep='\t', index_col=index_col)
+    def read_csv(self, fn, index_col=None, na_values=None):
+        if na_values is None:
+            df = pd.read_csv(fn, sep='\t', index_col=index_col, keep_default_na=False)
+        else:
+            df = pd.read_csv(fn, sep='\t', index_col=index_col, na_values = na_values)
         return df
 
-    def get_input_filenames(self):
-        columns = self._args.columns.to_list()
+    # def _convert_columns_to_numerical(self, df, nan_to_none=True):
+    #     cols = []
+    #     for col in df:
+    #         isNum = True
+    #         for row in df[col]:
+    #             if row:
+    #                 try:
+    #                     x = float(row)
+    #                 except:
+    #                     isNum = False
+    #                     break
+    #         if isNum:
+    #             cols.append(col)
+    #     for col in cols:
+    #         df[col] = pd.to_numeric(df[col], errors='coerce')
+    #     if nan_to_none:
+    #         for col in cols:
+    #             df[col] = df[col].replace({np.nan: None})
+    #     return df
+
+    def get_data_items(self):
         out = []
-        for col in columns:
-            if self._is_input_header_column(col):
-                filename = self._args[col].iloc[0]
-                if self._debug_key is not None:
-                    filename = self._create_debug_fn(filename)
-                out.append(filename)
-        return out
-
-    def get_output_filenames(self):
-        columns = self._args.columns.to_list()
-        out = []
-        for col in columns:
-            if self._is_output_header_column(col):
-                filename = self._args[col].iloc[0]
-                if self._debug_key is not None:
-                    filename = self._create_debug_fn(filename)
-                out.append(filename)
-        return out
-
-    def _load_input_fn_tags(self):
-        out = {}
         columns = self._args.columns.to_list()
         for col in columns:
-            if col == DockerInterop._INPUT_TAGS_HEADER_PREFIX:
-                s = self._args[col].iloc[0]
-                s = s.split('\t')
-                for i in range(0, len(s), 2):
-                    fn = self._get_filename(s[i])
-                    tag = s[i+1]
-                    out[fn] = tag
+            if self._is_data_item_column(col):
+                in_fn = self._args[col].iloc[0]
+                out_fig_fn = self._args[col].iloc[1]
+                out_tbl_fn = self._args[col].iloc[2]
+                if self._debug_key is not None:
+                    in_fn = self._create_debug_fn(in_fn)
+                    out_fig_fn = self._create_debug_fn(out_fig_fn)
+                    out_tbl_fn = self._create_debug_fn(out_tbl_fn)
+                tag = self._args[col].iloc[3]
+                out.append((in_fn, out_fig_fn, out_tbl_fn, tag))
         return out
-
-    def get_tag(self, fn):
-        for key in self._input_fn_tags:
-            if fn.endswith(key):
-                return self._input_fn_tags[key]
-        return None
 
     def _get_filename(self, path):
         head, tail = ntpath.split(path)
@@ -112,6 +109,8 @@ class DockerInterop:
         return None
 
     def _create_debug_fn(self, fn):
+        if fn.strip()=='':
+            return ''
         if fn.startswith(DockerInterop._DATA_EXCHANGE_IN_DIR):
             path = DockerInterop._DEBUG_DATA_EXCHANGE_IN_DIR + self._debug_key + '/'
             out = fn.replace(DockerInterop._DATA_EXCHANGE_IN_DIR, path)
@@ -120,15 +119,11 @@ class DockerInterop:
             out = fn.replace(DockerInterop._DATA_EXCHANGE_OUT_DIR, path)
         return out
 
-    def _is_input_header_column(self, col):
-        if col==self._INPUT_TAGS_HEADER_PREFIX:
+    def _is_data_item_column(self, col):
+        if col=='data_exchange':
             return False
         s = self._get_string_before_last_underscore(col)
-        return s == DockerInterop._INPUT_HEADER_PREFIX
-
-    def _is_output_header_column(self, col):
-        s = self._get_string_before_last_underscore(col)
-        return s == DockerInterop._OUTPUT_HEADER_PREFIX
+        return s == DockerInterop._DATA_ITEM_HEADER_PREFIX
 
     def _is_info_header_column(self, col):
         s = self._get_string_before_last_underscore(col)

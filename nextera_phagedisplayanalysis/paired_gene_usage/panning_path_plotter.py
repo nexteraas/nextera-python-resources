@@ -16,7 +16,7 @@ class PanningPathPlotter:
         img_height = str(img_height) + 'px'
         panels=[]
         for key, image in self._images.items():
-            panel = self._createPanel(key, image)
+            panel = self._create_panel(key, image)
             panels.append(panel)
         n = len(panels)
         if n == 1:
@@ -36,7 +36,7 @@ class PanningPathPlotter:
         fig=fig.tile(1,n)
         fig.save(out_fn)
 
-    def _createPanel(self, image_title, image_fn):
+    def _create_panel(self, image_title, image_fn):
         image_scale = self._image_display_size / self._image_original_size
         label_x = '1px'
         label_y = str(self._label_height) + 'px'

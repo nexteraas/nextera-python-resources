@@ -8,13 +8,14 @@ import nextera_utils.heatmap_plotter as utils_heatmap_plotter
 
 print('Creating paired gene circos plots report...')
 
-# fn = "C:/docker_data_exchange/in/85a5b7c9-04f0-473a-8cfc-87225b71dd62/arguments.csv"
-# docker = DockerInterop(fn, '85a5b7c9-04f0-473a-8cfc-87225b71dd62');
+# fn = "C:/docker_data_exchange/in/e26fbdda-54a5-415f-b0ca-109701f16d75/arguments.csv"
+# docker = DockerInterop(fn, 'e26fbdda-54a5-415f-b0ca-109701f16d75');
 
 docker = DockerInterop(sys.argv[1])
 
-input_fns = docker.get_input_filenames()
-output_fns = docker.get_output_filenames()
+data_items = docker.get_data_items()
+# input_fns = docker.get_input_filenames()
+# output_fns = docker.get_fig_output_filenames()
 
 summarize_fractions = docker.get_info_value(0, 'summarizeFractions')
 if summarize_fractions.upper() == 'TRUE':
@@ -28,10 +29,10 @@ circos_label_space = docker.get_info_value(0, 'circosLabelSpace')
 circos_label_space = 'dims(image,radius)-' + str(circos_label_space) + 'p'
 path_out_fns = []
 
-for fns in zip(input_fns, output_fns):
-    in_fn = fns[0]
-    out_fn= fns[1]
-    tag = docker.get_tag(in_fn)
+for item in data_items:
+    in_fn = item[0]
+    out_fn= item[1]
+    tag = item[3]
     if tag == 'heatmap':
         df = docker.read_csv(in_fn, 0)
         df = df.transpose()
@@ -46,7 +47,6 @@ for fns in zip(input_fns, output_fns):
     else:
         CircosExecutor.execute_circos(label_size, circos_radius, circos_label_space, in_fn, out_fn)
 
-#counter=len(input_fns)
 counter = 0
 infos = docker.get_infos()
 for key, info in infos.items():
@@ -56,7 +56,6 @@ for key, info in infos.items():
             images[info[i]] = info[i+1]
         plotter = PanningPathPlotter(image_original_size=3000, image_display_size=750,
                                      images=images, label_height=25)
-        #out_fn = docker.get_output_filenames()[counter]
         out_fn = path_out_fns[counter]
         plotter.plot(out_fn)
         counter += 1

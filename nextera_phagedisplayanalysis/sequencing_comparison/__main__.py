@@ -9,24 +9,24 @@ from nextera_utils.circos_executor import CircosExecutor
 
 print('Creating Sequencing comparison report...')
 
-# fn = "C:/docker_data_exchange/in/971d4254-2b00-433c-83fa-12de4602e86e/arguments.csv"
-# docker = DockerInterop(fn, '971d4254-2b00-433c-83fa-12de4602e86e');
+# fn = "C:/docker_data_exchange/in/ce6bb27c-3b5d-49fd-8546-2f3b9a0585be/arguments.csv"
+# docker = DockerInterop(fn, 'ce6bb27c-3b5d-49fd-8546-2f3b9a0585be');
 
 docker = DockerInterop(sys.argv[1])
 
-input_fns = docker.get_input_filenames()
-output_fns = docker.get_output_filenames()
+# input_fns = docker.get_input_filenames()
+# output_fns = docker.get_fig_output_filenames()
+data_items = docker.get_data_items()
 summarize_fractions=docker.get_info_value(0, 'summarizeFractions')
 if summarize_fractions.upper()=='TRUE':
     summarize_fractions=True
 else:
     summarize_fractions=False
 
-for fns in zip(input_fns, output_fns):
-    in_fn = fns[0]
-    out_fn= fns[1]
-    print (out_fn)
-    tag=docker.get_tag(in_fn)
+for item in data_items:
+    in_fn = item[0]
+    out_fn= item[1]
+    tag = item[3]
     if (tag == 'paired_gene_usage') or (tag == 'complete_cdr3_length') or (tag == 'complete_gene_usage'):
         data_df = docker.read_csv(in_fn)
     else:

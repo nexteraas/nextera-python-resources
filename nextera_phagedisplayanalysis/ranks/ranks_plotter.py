@@ -3,6 +3,8 @@ import seaborn as sns
 from matplotlib.patches import Ellipse
 import nextera_utils.utils as utils
 from nextera_utils.docker_interop import DockerInterop
+import numpy as np
+from matplotlib.ticker import FormatStrFormatter
 
 
 class RanksPlotter:
@@ -24,7 +26,6 @@ class RanksPlotter:
         self._extract_values(categories, values, labels, rel_freq_categories)
         for x in zip(categories, values, labels, rel_freq_categories):
             plt.plot(x[0], x[1], marker='o', label=x[2])
-            # sns.lineplot(x[0], x[1], marker='o', label=x[2])
         plt.legend(loc="upper right")
         plt.xlim([0, no_of_pannings])
         self._add_relative_freqs_indications(no_of_pannings, categories, values, rel_freq_categories, ax)
@@ -43,6 +44,10 @@ class RanksPlotter:
                 current_values.append(value)
                 current_categories.append(col)
                 rel_freq = row[self._data_df.columns[i+1]]
+                if not rel_freq:
+                    rel_freq=0.0
+                else:
+                    rel_freq = float(rel_freq)
                 if rel_freq > 0.9:
                     current_rel_freq_categories.append(1)
                 elif rel_freq > 0.5:

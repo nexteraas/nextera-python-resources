@@ -11,14 +11,15 @@ print('Creating aa composition report...')
 
 docker = DockerInterop(sys.argv[1])
 
-input_fns = docker.get_input_filenames()
-output_fns = docker.get_output_filenames()
+data_items = docker.get_data_items()
+# input_fns = docker.get_input_filenames()
+# output_fns = docker.get_fig_output_filenames()
 summarize_fractions=True
 
-for fns in zip(input_fns, output_fns):
-    in_fn = fns[0]
-    out_fn = fns[1]
-    tag = docker.get_tag(in_fn)
+for item in data_items:
+    in_fn = item[0]
+    out_fn = item[1]
+    tag = item[3]
     if tag == "aa_composition":
         df = docker.read_csv(in_fn, 0)
         title = ''

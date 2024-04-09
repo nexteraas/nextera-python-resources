@@ -2,10 +2,11 @@ import matplotlib.pyplot as plt
 from nextera_utils.docker_interop import DockerInterop
 import seaborn as sns
 
-def saveFigure(out_fn):
+def saveFigure(out_fn=None):
     debug_key = DockerInterop.get_instance().get_debug_key()
     if debug_key is None:
-        plt.savefig(out_fn)
+        if out_fn is not None:
+            plt.savefig(out_fn)
     else:
         plt.show()
 

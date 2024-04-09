@@ -100,7 +100,7 @@ class PhyloPlotter:
             nstyle["size"] = 0
             nstyle["hz_line_width"] = self._default_size
             nstyle["vt_line_width"] = self._default_size
-            # nstyle["fgcolor"] = "darkred"
+            #nstyle["fgcolor"] = "darkred"
             nstyle["hz_line_color"] = color
             for n in tree.traverse():
                 if n.name==seq_name:

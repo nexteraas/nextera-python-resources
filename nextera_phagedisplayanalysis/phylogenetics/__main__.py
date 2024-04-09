@@ -4,9 +4,8 @@ import sys
 
 
 print('Creating phylogenetics report...')
-
-# fn = "C:/docker_data_exchange/in/d1cd98df-8013-49c7-bc49-13cca7932ac6/arguments.csv"
-# docker = DockerInterop(fn, 'd1cd98df-8013-49c7-bc49-13cca7932ac6');
+# fn = "C:/docker_data_exchange/in/c4675c43-f3fd-4240-b281-1a806e0b8911/arguments.csv"
+# docker = DockerInterop(fn, 'c4675c43-f3fd-4240-b281-1a806e0b8911');
 
 docker = DockerInterop(sys.argv[1])
 
@@ -23,8 +22,9 @@ def extract_colors(docker):
             out[tmp[0]]=tmp[1]
     return out
 
-input_fns = docker.get_input_filenames()
-output_fns = docker.get_output_filenames()
+data_items = docker.get_data_items()
+# input_fns = docker.get_input_filenames()
+# output_fns = docker.get_fig_output_filenames()
 tree_construction = docker.get_info_value(0, 'tree_construction')
 
 distance_construction_method = docker.get_info_value(0, 'distance_construction_method')
@@ -36,10 +36,10 @@ tree_style_mode = docker.get_info_value(0, 'tree_style_mode')
 colors=extract_colors(docker)
 plotter = PhyloPlotter(tree_construction, distance_construction_method, default_color, default_size,
                        tree_style_mode, arc_start, arc_span)
-for fns in zip(input_fns, output_fns):
-    in_fn = fns[0]
-    out_fn = fns[1]
-    tag = docker.get_tag(in_fn)
+for item in data_items:
+    in_fn = item[0]
+    out_fn = item[1]
+    tag = item[3]
     plotter.plot(in_fn, out_fn, tag, colors)
 
 

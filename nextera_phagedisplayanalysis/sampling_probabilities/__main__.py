@@ -4,23 +4,22 @@ from nextera_phagedisplayanalysis.sampling_probabilities.sampling_probabilities_
 from nextera_utils.docker_interop import DockerInterop
 
 print('Creating sampling probabilities report...')
-# for a in sys.argv:
-#     print('arg: ' + a)
 
 
-#fn = 'C:/docker_data_exchange/in/81aa2a3e-c7b4-421f-bfd5-15778dff025b/arguments.csv'
-#docker = DockerInterop(fn, '81aa2a3e-c7b4-421f-bfd5-15778dff025b');
+#fn = 'C:/docker_data_exchange/in/5b08b79e-2162-46c8-a657-a3c17b0b3ad3/arguments.csv'
+#docker = DockerInterop(fn, '5b08b79e-2162-46c8-a657-a3c17b0b3ad3');
 
 docker = DockerInterop(sys.argv[1])
 
-input_fns = docker.get_input_filenames()
-output_fns = docker.get_output_filenames()
-for fn in zip(input_fns, output_fns):
-    data_df = docker.read_csv(fn[0])
+# input_fns = docker.get_input_filenames()
+# output_fns = docker.get_fig_output_filenames()
+data_items = docker.get_data_items()
+for item in data_items:
+    data_df = docker.read_csv(item[0])
     sampling_props_plotter = SamplingProbabilitiesPlotter(data_df)
-    if 'Details_' in fn[0]:
-        sampling_props_plotter.plot_details(fn[1])
+    if 'Details_' in item[0]:
+        sampling_props_plotter.plot_details(item[1])
     else:
-        sampling_props_plotter.plot_overview(fn[1])
+        sampling_props_plotter.plot_overview(item[1])
 
 

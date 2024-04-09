@@ -44,3 +44,4 @@ class HistogramPlotter:
 class Mode(enum.Enum):
     Cdr3Usage = 1
     GeneUsage = 2
+    NInserts = 3

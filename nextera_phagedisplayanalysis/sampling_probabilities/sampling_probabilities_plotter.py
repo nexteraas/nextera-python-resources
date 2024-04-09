@@ -19,10 +19,10 @@ class SamplingProbabilitiesPlotter():
         plt.subplots_adjust(bottom=0.5)
         self._data_df.sort_values(by=self._data_df.columns[1], ascending=False, inplace=True)
         plt.xticks(rotation=45)
-        col0 = self._data_df.columns[0]
-        col1 = self._data_df.columns[1]
+        col0 = self._data_df.columns[1]
+        col1 = self._data_df.columns[2]
         sns.scatterplot(data=self._data_df, x=col0, y=col1)
-        plt.xlabel("Sequence ids")
+        plt.xlabel("Sequence")
         plt.ylabel("No. of samples")
         utils.saveFigure(out_fn)
 
