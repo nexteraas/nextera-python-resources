@@ -34,6 +34,7 @@ for item in data_items:
     elif tag == 'dis':
         di = di_calculator.DiCalculator(scale=False, di_estimation_mode=di_estimation_mode)
         mse, mae = di.train()
+        print('MSE:\t' + str(mse))
         data_df = docker.read_csv(in_fn)
         di.predict(data_df, tbl_out_fn)
 

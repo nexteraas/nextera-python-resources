@@ -1,22 +1,44 @@
+from setuptools.command.alias import alias
+
 from nextera_utils.docker_interop import DockerInterop
 
 
 class AnarciProxy(object):
 
     @staticmethod
-    def run_anarci(seqs, h_chain=True):
+    def run_anarci(seqs, scheme=None, allow=None, allowed_species=None, h_chain=True):
         sequences, numbered, alignment_details, hit_tables = None, None, None, None
         debug_key = DockerInterop.get_instance().get_debug_key()
         if debug_key is None:
             import anarci as a
-            sequences, numbered, alignment_details, hit_tables = a.run_anarci(seqs, scheme='imgt')
+            if (scheme is None and allow is None and allowed_species is None):
+                sequences, numbered, alignment_details, hit_tables = a.run_anarci(seqs, scheme='imgt')
+            else:
+                sequences, numbered, alignment_details, hit_tables = a.run_anarci(seqs, scheme=scheme,
+                                                                                  allow=allow,
+                                                                                  allowed_species=allowed_species)
         else:
             if h_chain:
-                sequences, numbered  = AnarciProxy._create_h_chain_dummies()
+                sequences, numbered = AnarciProxy._create_h_chain_dummies()
             else:
                 sequences, numbered = AnarciProxy._create_l_chain_dummies()
             pass
         return sequences, numbered, alignment_details, hit_tables
+
+    # @staticmethod
+    # def run_anarci(seqs, h_chain=True):
+    #     sequences, numbered, alignment_details, hit_tables = None, None, None, None
+    #     debug_key = DockerInterop.get_instance().get_debug_key()
+    #     if debug_key is None:
+    #         import anarci as a
+    #         sequences, numbered, alignment_details, hit_tables = a.run_anarci(seqs, scheme='imgt')
+    #     else:
+    #         if h_chain:
+    #             sequences, numbered  = AnarciProxy._create_h_chain_dummies()
+    #         else:
+    #             sequences, numbered = AnarciProxy._create_l_chain_dummies()
+    #         pass
+    #     return sequences, numbered, alignment_details, hit_tables
 
     @staticmethod
     def _create_h_chain_dummies():

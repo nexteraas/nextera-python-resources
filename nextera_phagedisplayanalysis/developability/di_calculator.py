@@ -6,6 +6,7 @@ import copy
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.svm import SVR
+from sklearn.ensemble import RandomForestRegressor
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
@@ -16,7 +17,7 @@ from sklearn.preprocessing import StandardScaler
 
 
 class DiCalculator(object):
-    def __init__(self, scale=False, di_estimation_mode='linear'):
+    def __init__(self, scale=False, di_estimation_mode='linear3'):
         self._scale = scale
         self._debug_key = DockerInterop.get_instance().get_debug_key()
         self._m_ab_dis = self._get_m_ab_dis()
@@ -27,10 +28,28 @@ class DiCalculator(object):
         self._di_categories = [0.8, 3.2]
 
     def _get_properties(self):
-        if self._di_estimation_mode == 'linear':
+        if self._di_estimation_mode == 'linear3':
             out = ['SAP_pos_CDRH3', 'SCM_pos_CDRL3', 'SCM_neg_CDRH3']
-        elif self._di_estimation_mode == 'svr':
+        elif self._di_estimation_mode == 'linear4':
+            out = ['SAP_pos_CDRH3', 'SCM_pos_CDRL1', 'SCM_pos_CDR', 'SCM_pos_Hv']
+        elif self._di_estimation_mode == 'linear30':
+            out = ['SAP_pos_CDRH3', 'SAP_pos_CDRH2','SAP_pos_CDRH1',
+                   'SAP_pos_CDRL3', 'SAP_pos_CDRL2', 'SAP_pos_CDRL1', 'SAP_pos_CDR',
+                   'SAP_pos_Hv', 'SAP_pos_Lv', 'SAP_pos_Fv',
+                   'SCM_pos_CDRH3', 'SCM_pos_CDRH2', 'SCM_pos_CDRH1',
+                   'SCM_pos_CDRL3', 'SCM_pos_CDRL2', 'SCM_pos_CDRL1', 'SCM_pos_CDR',
+                   'SCM_pos_Hv', 'SCM_pos_Lv', 'SCM_pos_Fv',
+                   'SCM_neg_CDRH3', 'SCM_neg_CDRH2', 'SCM_neg_CDRH1',
+                   'SCM_neg_CDRL3', 'SCM_neg_CDRL2', 'SCM_neg_CDRL1', 'SCM_neg_CDR',
+                   'SCM_neg_Hv', 'SCM_neg_Lv', 'SCM_neg_Fv']
+        elif self._di_estimation_mode == 'svr3':
             out = ['SCM_pos_CDRH3', 'SCM_neg_CDRH2', 'SCM_neg_Fv']
+        elif self._di_estimation_mode == 'svr4':
+            out = ['SCM_pos_CDRH3', 'SCM_neg_CDRH2', 'SCM_neg_CDRL2', 'SCM_neg_Fv']
+        elif self._di_estimation_mode == 'randomForest3':
+            out = ['SAP_pos_Hv', 'SCM_pos_CDRH3', 'SCM_neg_Fv']
+        elif self._di_estimation_mode == 'randomForest4':
+            out = ['SAP_pos_Hv', 'SCM_pos_CDRH3', 'SCM_pos_Lv', 'SCM_neg_Fv']
         else:
             raise NotImplementedError()
         return out
@@ -138,10 +157,13 @@ class DiCalculator(object):
             sc_y = StandardScaler()
             X = sc_X.fit_transform(X)
             y = sc_y.fit_transform(y)
-        if self._di_estimation_mode == 'linear':
+        if (self._di_estimation_mode == 'linear3') or (self._di_estimation_mode == 'linear4') \
+                                                   or (self._di_estimation_mode == 'linear30'):
             return self._train_linear_regression(X, y)
-        elif self._di_estimation_mode == 'svr':
+        elif (self._di_estimation_mode == 'svr3') or (self._di_estimation_mode == 'svr4'):
             return self._train_svr_regression(X, y)
+        elif (self._di_estimation_mode == 'randomForest3') or (self._di_estimation_mode == 'randomForest4'):
+            return self._train_random_forest_regression(X, y)
         else:
             raise NotImplementedError()
         return out
@@ -161,6 +183,14 @@ class DiCalculator(object):
         predictions = self._model.predict(X)
         mse =  mean_squared_error(y, predictions)
         mae =  mean_absolute_error(y, predictions)
+        return mse, mae
+
+    def _train_random_forest_regression(self, X, y):
+        self._model = RandomForestRegressor(max_depth=6)
+        self._model.fit(X, y)
+        predictions = self._model.predict(X)
+        mse = mean_squared_error(y, predictions)
+        mae = mean_absolute_error(y, predictions)
         return mse, mae
 
     def _create_training_df(self, sequences):
