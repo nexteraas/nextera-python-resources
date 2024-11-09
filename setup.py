@@ -17,6 +17,7 @@ setup(
               'nextera_phagedisplayanalysis.sequence_logos',
               'nextera_phagedisplayanalysis.phylogenetics',
               'nextera_phagedisplayanalysis.aa_composition',
+              'nextera_phagedisplayanalysis.nt_primer_effects',
               'nextera_phagedisplayanalysis.fold_prediction'],
     include_package_data = True,
     url='',

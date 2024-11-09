@@ -226,7 +226,7 @@ class DiCalculator(object):
         return out
 
     def predict(self, df, out_fn):
-        X = self._calculate_deepsp_values(df)
+        X = df
         X.set_index('Name', inplace=True)
         X = X[self._properties]
         y = self._m_ab_dis
@@ -237,7 +237,7 @@ class DiCalculator(object):
             y = sc_y.fit_transform(y)
         predictions = self._model.predict(X)
         out_df = pd.DataFrame(predictions, columns=['DI'])
-        ids = list(df.iloc[:, 0])
+        ids=list(df.index)
         out_df.insert(loc=0, column='Id', value=ids)
         categories=self._get_categories(predictions)
         out_df.insert(loc=1, column='DI category', value=categories)

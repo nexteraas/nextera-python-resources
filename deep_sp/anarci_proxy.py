@@ -6,17 +6,18 @@ from nextera_utils.docker_interop import DockerInterop
 class AnarciProxy(object):
 
     @staticmethod
-    def run_anarci(seqs, scheme=None, allow=None, allowed_species=None, h_chain=True):
+    def run_anarci(seqs, scheme=None, allow=None, allowed_species=None, h_chain=True, assign_germline=False):
         sequences, numbered, alignment_details, hit_tables = None, None, None, None
         debug_key = DockerInterop.get_instance().get_debug_key()
         if debug_key is None:
             import anarci as a
             if (scheme is None and allow is None and allowed_species is None):
-                sequences, numbered, alignment_details, hit_tables = a.run_anarci(seqs, scheme='imgt')
+                sequences, numbered, alignment_details, hit_tables = a.run_anarci(seqs, scheme='imgt',  assign_germline=assign_germline)
             else:
                 sequences, numbered, alignment_details, hit_tables = a.run_anarci(seqs, scheme=scheme,
                                                                                   allow=allow,
-                                                                                  allowed_species=allowed_species)
+                                                                                  allowed_species=allowed_species,
+                                                                                  assign_germline=assign_germline)
         else:
             if h_chain:
                 sequences, numbered = AnarciProxy._create_h_chain_dummies()

@@ -160,16 +160,19 @@ class DeepSP(object):
     def _seq_preprocessing(self, names, h_numbered, l_numbered):
         out = {}
         for i in range(len(h_numbered)):
-            H_tmp = 145 * ['-']
-            L_tmp = 127 * ['-']
-            num_h = h_numbered[i][0][0]
-            num_l = l_numbered[i][0][0]
-            self._enter_aas(num_h, H_tmp, self._H_dict)
-            self._enter_aas(num_l, L_tmp, self._L_dict)
-            aa_string = ''
-            for aa in H_tmp + L_tmp:
-                aa_string += aa
-            out[names[i][0]] = aa_string
+            try:
+                H_tmp = 145 * ['-']
+                L_tmp = 127 * ['-']
+                num_h = h_numbered[i][0][0]
+                num_l = l_numbered[i][0][0]
+                self._enter_aas(num_h, H_tmp, self._H_dict)
+                self._enter_aas(num_l, L_tmp, self._L_dict)
+                aa_string = ''
+                for aa in H_tmp + L_tmp:
+                    aa_string += aa
+                out[names[i][0]] = aa_string
+            except Exception as error:
+                print('Exception in DeepSP._seq_preprocessing, index ' + str(i) + ':', type(error).__name__, "–", error)
         return out
 
     def _enter_aas(self, nums, tmp, dct):

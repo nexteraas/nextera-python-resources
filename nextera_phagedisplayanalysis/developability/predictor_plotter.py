@@ -202,6 +202,9 @@ class PredictorPlotter(object):
         self._developability_df = predictor.run(self._data_df)
         return self._developability_df
 
+    def get_developability_df(self):
+        return self._developability_df
+
     def plot_data(self, out_fn=None):
         if self._developability_df is None or self._developability_df.empty: return
         if self._debug_key is None:
@@ -223,6 +226,8 @@ class PredictorPlotter(object):
                     self._quartiles_df.loc[index, column] = q
         if self._debug_key is None:
             if out_fn is not None:
+                #print('self._quartiles_df:')
+                #print(self._quartiles_df)
                 self._quartiles_df.to_csv(out_fn, index=False, sep ='\t')
         else:
             print(self._quartiles_df)

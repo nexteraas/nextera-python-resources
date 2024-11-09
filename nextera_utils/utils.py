@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from nextera_utils.docker_interop import DockerInterop
-import seaborn as sns
+
 
 def saveFigure(out_fn=None):
     debug_key = DockerInterop.get_instance().get_debug_key()
