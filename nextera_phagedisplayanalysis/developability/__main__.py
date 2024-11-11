@@ -1,6 +1,7 @@
 from nextera_utils.docker_interop import DockerInterop
 from nextera_phagedisplayanalysis.developability import predictor_plotter, di_calculator
 from nextera_phagedisplayanalysis.developability import umap_plotter as u
+import pandas as pd
 import sys
 
 
@@ -39,10 +40,16 @@ def create_di_report(di_estimation_mode):
     if di is not None:
         di.predict(predictor.get_developability_df(), di_out)
 
+def extract_filename(path):
+    out = path.split('/')
+    out = out[-1]
+    out = out.replace("tbl.csv", "")
+    return out
 
-def create_umap_report():
+def create_umap_report(n_neighbors, min_dist, n_components, metric, legend_size):
     umap_out_fn=''
     abs_value_dfs=[]
+    abs_value_names = []
     for item in data_items:
         in_fn = item[0]
         fig_out_fn = item[1]
@@ -53,35 +60,38 @@ def create_umap_report():
             predictor = predictor_plotter.PredictorPlotter(data_df)
             df=predictor.calculate_developability()
             abs_value_dfs.append(df)
+            abs_value_names.append(extract_filename(in_fn))
         elif tag=='UMAP':
             umap_out_fn = item[1]
-    features=None
-    group=0
-    for df in abs_value_dfs:
-        df['groups'] = str(group)
-        if features is None:
-            features=df
-        else:
-            features = features.append(df, ignore_index=True)
-        group += 1
-    group_df = features.groups
-    data_df=df = features.drop('column_name', axis=1)
-    umap_plotter = u.UmapPlotter(data_df, group_df)
+    for i in range(len(abs_value_dfs)):
+        df=abs_value_dfs[i]
+        n=abs_value_names[i]
+        df['groups'] = str(n)
+    features = pd.concat(abs_value_dfs, ignore_index=True)
+    data_df = features.drop('Name', axis=1)
+    umap_plotter = u.UmapPlotter(df=data_df, groups_col='groups', n_neighbors=n_neighbors, min_dist=min_dist,
+                                 n_components=n_components, metric=metric, legend_size=legend_size)
+
     umap_plotter.plot(umap_out_fn)
 
 
-# fn = "C:/docker_data_exchange/in/c71cec5a-6aa0-4b60-8935-fc30adf0ff6f/arguments.csv"
-# docker = DockerInterop(fn, 'c71cec5a-6aa0-4b60-8935-fc30adf0ff6f')
+# fn = "C:/docker_data_exchange/in/cd513a1f-fa99-4c64-b82a-7ffaf398583c/arguments.csv"
+# docker = DockerInterop(fn, 'cd513a1f-fa99-4c64-b82a-7ffaf398583c')
+
 docker = DockerInterop(sys.argv[1])
 
-
 data_items = docker.get_data_items()
-di_estimation_mode = docker.get_info_value(0, 'di_estimation_mode')
 analysis_mode = docker.get_info_value(0, 'analysis_mode')
 
 if analysis_mode=='calculateDI':
+    di_estimation_mode = docker.get_info_value(0, 'di_estimation_mode')
     create_di_report(di_estimation_mode)
-elif analysis_mode == 'calculateDI':
-    create_umap_report()
+elif analysis_mode == 'plotUMAP':
+    n_neighbors = int(docker.get_info_value(0, 'n_neighbors'))
+    min_dist = float(docker.get_info_value(0, 'min_dist'))
+    n_components = int(docker.get_info_value(0, 'n_components'))
+    metric = docker.get_info_value(0, 'metric')
+    legend_size = int(docker.get_info_value(0, 'legend_size'))
+    create_umap_report(n_neighbors, min_dist, n_components, metric, legend_size)
 
 
