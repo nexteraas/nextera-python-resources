@@ -6,8 +6,10 @@ from nextera_phagedisplayanalysis.anarci.anarci_executor import AnarciExecutor
 
 print('Creating ANARCI report...')
 
-#fn = "C:/docker_data_exchange/in/06cb35c2-faf9-49df-95a8-c99482da3461/arguments.csv"
-#docker = DockerInterop(fn, '06cb35c2-faf9-49df-95a8-c99482da3461');
+RECEPTORS_TAG = 'receptors'
+
+#fn = "C:/docker_data_exchange/in/7607dca5-a495-4858-bf4e-4567ef8b69f1/arguments.csv"
+#docker = DockerInterop(fn, '7607dca5-a495-4858-bf4e-4567ef8b69f1');
 docker = DockerInterop(sys.argv[1])
 
 allowed_chain = docker.get_info_value(0, 'allowed_chain')
@@ -23,7 +25,7 @@ data_items = docker.get_data_items()
 def get_main_data_item():
     for item in data_items:
         tag = item[3]
-        if tag=='receptors':
+        if tag==RECEPTORS_TAG:
             return item
 
 main_item = get_main_data_item()
@@ -49,7 +51,8 @@ for item in data_items:
     fig_out_fn = item[1]
     tbl_out_fn = item[2]
     tag = item[3]
-    if tag=='details':
+    #if tag=='details':
+    if tag!=RECEPTORS_TAG:
         print('processing details...')
         builder = table_builder.TableBuilder(allowed_chain, allowed_species, scheme)
         print(anarci.get_numbered1()[idx])

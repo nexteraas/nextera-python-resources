@@ -46,7 +46,7 @@ def extract_filename(path):
     out = out.replace("tbl.csv", "")
     return out
 
-def create_umap_report(n_neighbors, min_dist, n_components, metric, legend_size):
+def create_umap_report(n_neighbors, min_dist, n_components, metric, legend_size, point_size, alpha):
     umap_out_fn=''
     abs_value_dfs=[]
     abs_value_names = []
@@ -69,8 +69,8 @@ def create_umap_report(n_neighbors, min_dist, n_components, metric, legend_size)
         df['groups'] = str(n)
     features = pd.concat(abs_value_dfs, ignore_index=True)
     data_df = features.drop('Name', axis=1)
-    umap_plotter = u.UmapPlotter(df=data_df, groups_col='groups', n_neighbors=n_neighbors, min_dist=min_dist,
-                                 n_components=n_components, metric=metric, legend_size=legend_size)
+    umap_plotter = u.UmapPlotter(df=data_df, groups_col='groups', n_neighbors=n_neighbors, min_dist=min_dist, n_components=n_components,
+                                 metric=metric, legend_size=legend_size, point_size=point_size, alpha=alpha)
 
     umap_plotter.plot(umap_out_fn)
 
@@ -92,6 +92,8 @@ elif analysis_mode == 'plotUMAP':
     n_components = int(docker.get_info_value(0, 'n_components'))
     metric = docker.get_info_value(0, 'metric')
     legend_size = int(docker.get_info_value(0, 'legend_size'))
-    create_umap_report(n_neighbors, min_dist, n_components, metric, legend_size)
+    point_size = int(docker.get_info_value(0, 'point_size'))
+    alpha = float(docker.get_info_value(0, 'alpha'))
+    create_umap_report(n_neighbors, min_dist, n_components, metric, legend_size, point_size, alpha)
 
 

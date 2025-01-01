@@ -1,6 +1,7 @@
 import ntpath
 import pandas as pd
 import numpy as np
+import os
 
 
 class DockerInterop:
@@ -13,6 +14,7 @@ class DockerInterop:
     _DATA_EXCHANGE_OUT_DIR = "/data_exchange/out/"
     _DEBUG_DATA_EXCHANGE_IN_DIR = "C:/docker_data_exchange/in/"
     _DEBUG_DATA_EXCHANGE_OUT_DIR = "C:/docker_data_exchange/out/"
+    _TMP_DIR="/tmp/"
     _INSTANCE = None
 
     @staticmethod
@@ -74,8 +76,17 @@ class DockerInterop:
         return out
 
     def _get_filename(self, path):
+        return DockerInterop.get_filename(path, True)
+
+    @staticmethod
+    def get_filename(path):
         head, tail = ntpath.split(path)
         return tail or ntpath.basename(head)
+
+    @staticmethod
+    def get_filename_parts(filename):
+        fn, fn_ext = os.path.splitext(filename)
+        return fn, fn_ext
 
     def get_infos(self):
         out={}

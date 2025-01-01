@@ -10,8 +10,8 @@ import seaborn as sns
 
 print('Creating Sequence logos report...')
 
-# fn = "C:/docker_data_exchange/in/72f883f7-48f4-4c37-b04e-ef3febbea841/arguments.csv"
-# docker = DockerInterop(fn, '72f883f7-48f4-4c37-b04e-ef3febbea841');
+#fn = "C:/docker_data_exchange/in/260a4fdf-43f1-49f4-b018-d4201e780876/arguments.csv"
+#docker = DockerInterop(fn, '260a4fdf-43f1-49f4-b018-d4201e780876');
 
 docker = DockerInterop(sys.argv[1])
 

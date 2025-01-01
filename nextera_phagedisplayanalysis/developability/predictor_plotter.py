@@ -1,13 +1,8 @@
-from networkx.algorithms.bipartite import color
-from setuptools.msvc import winreg
-
 from nextera_utils.docker_interop import DockerInterop
 import nextera_utils.utils as utils
 from deep_sp.deep_sp import DeepSP, Quartiles
 import copy
 import matplotlib.pyplot as plt
-import pandas as pd
-from matplotlib.patches import Rectangle
 
 
 class CompositeRectangle(object):

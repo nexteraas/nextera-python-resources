@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import sys
 import matplotlib as mpl
+import click
 
 
 BINDING_RATIO_TEXT='Binding ratio'

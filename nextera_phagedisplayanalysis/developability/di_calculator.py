@@ -1,18 +1,11 @@
 from nextera_utils.docker_interop import DockerInterop
 from nextera_phagedisplayanalysis.developability import predictor_plotter
-import sys
 import pandas as pd
 import copy
-import matplotlib.pyplot as plt
-import numpy as np
 from sklearn.svm import SVR
 from sklearn.ensemble import RandomForestRegressor
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, mean_absolute_error
-from sklearn import preprocessing
 from sklearn.preprocessing import StandardScaler
 
 
