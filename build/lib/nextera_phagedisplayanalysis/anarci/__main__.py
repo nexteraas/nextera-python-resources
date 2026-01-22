@@ -8,8 +8,8 @@ print('Creating ANARCI report...')
 
 RECEPTORS_TAG = 'receptors'
 
-#fn = "C:/docker_data_exchange/in/7607dca5-a495-4858-bf4e-4567ef8b69f1/arguments.csv"
-#docker = DockerInterop(fn, '7607dca5-a495-4858-bf4e-4567ef8b69f1');
+# fn = "C:/docker_data_exchange/in/72b78668-dfca-4b7e-9bfe-8ad73b650a05/arguments.csv"
+# docker = DockerInterop(fn, '72b78668-dfca-4b7e-9bfe-8ad73b650a05');
 docker = DockerInterop(sys.argv[1])
 
 allowed_chain = docker.get_info_value(0, 'allowed_chain')

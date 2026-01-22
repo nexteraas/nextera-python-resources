@@ -14,6 +14,13 @@ nextera_phagedisplayanalysis/__init__.py
 nextera_phagedisplayanalysis/aa_composition/__init__.py
 nextera_phagedisplayanalysis/aa_composition/__main__.py
 nextera_phagedisplayanalysis/aa_composition/aa_evolution_plotter.py
+nextera_phagedisplayanalysis/abpred/__init__.py
+nextera_phagedisplayanalysis/abpred/__main__.py
+nextera_phagedisplayanalysis/abpred/abpred_executor.py
+nextera_phagedisplayanalysis/abpred/abpred_parser.py
+nextera_phagedisplayanalysis/abpred/benchmark.py
+nextera_phagedisplayanalysis/abpred/meta.py
+nextera_phagedisplayanalysis/abpred/ranks.py
 nextera_phagedisplayanalysis/anarci/__init__.py
 nextera_phagedisplayanalysis/anarci/__main__.py
 nextera_phagedisplayanalysis/anarci/anarci_executor.py

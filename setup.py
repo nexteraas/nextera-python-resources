@@ -8,6 +8,7 @@ setup(
               'nextera_phagedisplayanalysis.anarci',
               'nextera_phagedisplayanalysis.ranks',
               'nextera_phagedisplayanalysis.developability',
+              'nextera_phagedisplayanalysis.abpred',
               'nextera_phagedisplayanalysis.diversity',
               'nextera_phagedisplayanalysis.sequencing_comparison',
               'nextera_phagedisplayanalysis.paired_gene_usage',

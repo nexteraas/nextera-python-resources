@@ -23,14 +23,15 @@ class DockerInterop:
             raise Exception('Not instantiated')
         return DockerInterop._INSTANCE
 
-    def __init__(self, args_fn, debug_key=None):
+    def __init__(self, args_fn, in_debug_key=None, out_debug_key=None):
         if args_fn is not None:
             self._args = self.read_csv(args_fn)
-        self._debug_key = debug_key
+        self._in_debug_key = in_debug_key
+        self._out_debug_key = out_debug_key
         DockerInterop._INSTANCE = self
 
     def get_debug_key(self):
-        return self._debug_key
+        return self._in_debug_key
 
     def read_csv(self, fn, index_col=None, na_values=None):
         if na_values is None:
@@ -38,6 +39,9 @@ class DockerInterop:
         else:
             df = pd.read_csv(fn, sep='\t', index_col=index_col, na_values = na_values)
         return df
+
+    def write_csv(self, df, fn):
+        df.to_csv(fn, sep='\t', index=False)
 
     # def _convert_columns_to_numerical(self, df, nan_to_none=True):
     #     cols = []
@@ -67,7 +71,7 @@ class DockerInterop:
                 in_fn = self._args[col].iloc[0]
                 out_fig_fn = self._args[col].iloc[1]
                 out_tbl_fn = self._args[col].iloc[2]
-                if self._debug_key is not None:
+                if self._in_debug_key is not None:
                     in_fn = self._create_debug_fn(in_fn)
                     out_fig_fn = self._create_debug_fn(out_fig_fn)
                     out_tbl_fn = self._create_debug_fn(out_tbl_fn)
@@ -123,10 +127,14 @@ class DockerInterop:
         if fn.strip()=='':
             return ''
         if fn.startswith(DockerInterop._DATA_EXCHANGE_IN_DIR):
-            path = DockerInterop._DEBUG_DATA_EXCHANGE_IN_DIR + self._debug_key + '/'
+            path = DockerInterop._DEBUG_DATA_EXCHANGE_IN_DIR + self._in_debug_key + '/'
             out = fn.replace(DockerInterop._DATA_EXCHANGE_IN_DIR, path)
         elif fn.startswith(DockerInterop._DATA_EXCHANGE_OUT_DIR):
-            path = DockerInterop._DEBUG_DATA_EXCHANGE_OUT_DIR + self._debug_key + '/'
+            if self._out_debug_key is None:
+                debug_fn = 'NO_OUT_DEBUG_KEY'
+            else:
+                debug_fn = self._out_debug_key
+            path = DockerInterop._DEBUG_DATA_EXCHANGE_OUT_DIR + debug_fn + '/'
             out = fn.replace(DockerInterop._DATA_EXCHANGE_OUT_DIR, path)
         return out
 

@@ -8,7 +8,7 @@ import sys
 print('Creating Developability report...')
 
 
-def create_di_report(di_estimation_mode):
+def create_di_report(di_estimation_mode, data_items):
     q_in_fn = None
     q_fig_out_fn = None
     q_tbl_out_fn = None
@@ -46,7 +46,7 @@ def extract_filename(path):
     out = out.replace("tbl.csv", "")
     return out
 
-def create_umap_report(n_neighbors, min_dist, n_components, metric, legend_size, point_size, alpha):
+def create_umap_report(n_neighbors, min_dist, n_components, metric, legend_size, point_size, alpha, data_items):
     umap_out_fn=''
     abs_value_dfs=[]
     abs_value_names = []
@@ -74,9 +74,8 @@ def create_umap_report(n_neighbors, min_dist, n_components, metric, legend_size,
 
     umap_plotter.plot(umap_out_fn)
 
-
-# fn = "C:/docker_data_exchange/in/cd513a1f-fa99-4c64-b82a-7ffaf398583c/arguments.csv"
-# docker = DockerInterop(fn, 'cd513a1f-fa99-4c64-b82a-7ffaf398583c')
+# fn = "C:/docker_data_exchange/in/c24dc4c0-b20a-4cd2-9ecc-2d6ae2fa00a9/arguments.csv"
+# docker = DockerInterop(fn, 'c24dc4c0-b20a-4cd2-9ecc-2d6ae2fa00a9')
 
 docker = DockerInterop(sys.argv[1])
 
@@ -85,7 +84,7 @@ analysis_mode = docker.get_info_value(0, 'analysis_mode')
 
 if analysis_mode=='calculateDI':
     di_estimation_mode = docker.get_info_value(0, 'di_estimation_mode')
-    create_di_report(di_estimation_mode)
+    create_di_report(di_estimation_mode, data_items)
 elif analysis_mode == 'plotUMAP':
     n_neighbors = int(docker.get_info_value(0, 'n_neighbors'))
     min_dist = float(docker.get_info_value(0, 'min_dist'))
@@ -94,6 +93,6 @@ elif analysis_mode == 'plotUMAP':
     legend_size = int(docker.get_info_value(0, 'legend_size'))
     point_size = int(docker.get_info_value(0, 'point_size'))
     alpha = float(docker.get_info_value(0, 'alpha'))
-    create_umap_report(n_neighbors, min_dist, n_components, metric, legend_size, point_size, alpha)
+    create_umap_report(n_neighbors, min_dist, n_components, metric, legend_size, point_size, alpha, data_items)
 
 
