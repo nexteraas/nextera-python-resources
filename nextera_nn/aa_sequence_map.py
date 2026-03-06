@@ -1,6 +1,3 @@
-from tmp.mmseqs2 import output
-
-
 class AaSequenceMap(object):
     def __init__(self, fn, sequences=None, remove_gaps=False, productive_only=True, tag=None):
         self._fn = fn

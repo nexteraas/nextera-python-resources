@@ -4,6 +4,8 @@ from aa_sequence_map import AaSequenceMap
 from  sanity_checker import SequenceSanityChecker
 import pandas as pd
 from datasets import Dataset
+from sklearn.model_selection import StratifiedKFold
+import numpy as np
 
 
 class Features(object):
@@ -66,45 +68,57 @@ class Features(object):
                     train_seqs[k]=aa_map.get_sequences()[k]
                 else:
                     test_seqs[k] = aa_map.get_sequences()[k]
-            train_map=AaSequenceMap(fn=aa_map.get_fn(), sequences=train_seqs)
-            test_map=AaSequenceMap(fn=aa_map.get_fn(), sequences=test_seqs)
+            train_map=AaSequenceMap(fn=aa_map.get_fn(), sequences=train_seqs, tag=aa_map.get_tag())
+            test_map=AaSequenceMap(fn=aa_map.get_fn(), sequences=test_seqs, tag=aa_map.get_tag())
             train_out.add(train_map)
             test_out.add(test_map)
         return train_out, test_out
 
-    def export_to_dataframe(self):
+    def export_to_dataframe(self, randomize=True):
         out=None
         for aa_map in self._aa_sequence_maps.values():
             seqs=aa_map.get_sequence_list()
             df=pd.DataFrame(seqs, columns=['sequence'])
-            df['class'] = aa_map.get_tag()
+            t = aa_map.get_tag()
+            if not isinstance(t, int):
+                raise Exception(f"Tag property is not int: {t}")
+            df['label'] = t
             if out is None:
                 out = df
             else:
                 out = pd.concat([out, df], ignore_index=True)
+        if randomize:
+            out = out.sample(frac=1).reset_index(drop=True)
         return out
 
-    def export_to_dataset(self):
-        df=self.export_to_dataframe()
+    def export_to_dataset(self, randomize=True):
+        df=self.export_to_dataframe(randomize)
         out = Dataset.from_pandas(df)
         return out
 
+    def iterate_k_fold_validation(self, exec_func, n_splits=5, shuffle=True, random_state=42):
+        skf = StratifiedKFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
+        ds=self.export_to_dataset(randomize=True)
+        labels = np.array(ds["label"])
+        for fold, (train_idx, val_idx) in enumerate(skf.split(ds, labels)):
+            print(f"--- Fold {fold + 1}/{n_splits} ---")
+            train_ds = ds.select(train_idx)
+            val_ds = ds.select(val_idx)
+            exec_func(train_ds, val_ds, 3)
 
-imp_specific = AaSequenceMap("C:/Nextera/div/ab_roberta/prame_specific_seqs.txt")
-#imp_specific=FastaImporter("C:/Nextera/div/ab_roberta/test.fa", True, True)
-removed1=imp_specific.remove_sequences(disallowed_aas=['X'])
-imp_background=AaSequenceMap("C:/Nextera/div/ab_roberta/r0_n_250.txt")
-imps=[imp_specific, imp_background]
-checker= SequenceSanityChecker(imps)
-checker.check_aas()
-max1=checker.get_max_lengths(imp_specific)
-max2=checker.get_max_lengths(imp_background)
-aacount1=checker.check_unique_aa_counts(position_from=-2, position_to=None, aa_sequence_map=imp_specific)
-aacount2=checker.check_unique_aa_counts(position_from=-2, position_to=None, aa_sequence_map=imp_background)
+        # performance_metrics = []
+        # for fold_idx, (train_indices, val_indices) in enumerate(skf.split(X, y)):
+        #     train_dataset = YourCustomDataset(X[train_indices], y[train_indices])
+        #     val_dataset = YourCustomDataset(X[val_indices], y[val_indices])
+        #     model = RobertaForSequenceClassification.from_pretrained('roberta-base', num_labels=num_labels)
+        #     training_args = TrainingArguments(
+        #         output_dir=f'./results_fold_{fold_idx + 1}',
+        #     )
+        #     trainer = Trainer(model=model, args=training_args, train_dataset=train_dataset, eval_dataset=val_dataset, )
+        #     trainer.train()
+        #     metrics = trainer.evaluate()
+        #     performance_metrics.append(metrics['eval_accuracy'])  # Example
+        # average_performance = np.mean(performance_metrics)
+        # print(f"Average validation accuracy across all folds: {average_performance}")
 
-f=Features()
-f.add(imp_specific)
-f.add(imp_background)
-#f.balance()
-train_f, test_f=f.split_train_test()
-df=9
+

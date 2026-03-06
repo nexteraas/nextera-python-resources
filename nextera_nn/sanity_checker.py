@@ -2,6 +2,32 @@ class SequenceSanityChecker(object):
     def __init__(self, aa_sequence_maps):
         self._aa_sequence_maps = aa_sequence_maps
 
+    def check_motif(self, motif, multiple_occurrences_only=False):
+        out={}
+        for aa_sequence_map in self._aa_sequence_maps:
+            for key in aa_sequence_map.get_sequences().keys():
+                aa_key = aa_sequence_map.get_tag()
+                sequence = aa_sequence_map.get_sequences().get(key)
+                c=sequence.count(motif)
+                b=False
+                if multiple_occurrences_only:
+                    if c>1:
+                        b=True
+                else:
+                    if c>0:
+                        b=True
+                if b:
+                    aa_c=out.get(aa_key)
+                    if aa_c is None:
+                        aa_c=0
+                    aa_c+=1
+                    out[aa_key]=aa_c
+            if out.get(aa_key) is None:
+                out[aa_key]=0
+            else:
+                out[aa_key]=out[aa_key]/len(aa_sequence_map.get_sequences())
+        return out
+
     def check_aas(self, canonicals_only=True):
         if canonicals_only:
             alphabet = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S',
