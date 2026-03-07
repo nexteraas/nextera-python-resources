@@ -1,3 +1,11 @@
+class Counter(object):
+    def __init__(self):
+        self._value=0
+
+    def add(self, number=1):
+        self._value += number
+
+
 class SequenceSanityChecker(object):
     def __init__(self, aa_sequence_maps):
         self._aa_sequence_maps = aa_sequence_maps
@@ -67,7 +75,7 @@ class SequenceSanityChecker(object):
     def get_max_lengths(self, aa_sequence_map=None):
         out=0
         if aa_sequence_map is None:
-            for aa_map in self._fasta_importers:
+            for aa_map in self._aa_sequence_maps:
                 tmp = self._check_max_lengths(aa_map)
                 if tmp >out:
                     out = tmp
@@ -80,4 +88,27 @@ class SequenceSanityChecker(object):
         for sequence in aa_sequence_map.get_sequences().values():
             if out<len(sequence):
                 out=len(sequence)
+        return out
+
+    def check_aa_composition(self, aa_sequence_map=None):
+        out = {}
+        if aa_sequence_map is None:
+            for aa_map in self._aa_sequence_maps:
+                tmp = self._check_aa_composition(aa_map)
+                out[aa_map.get_tag()]=tmp
+        else:
+            out = self._check_aa_composition(aa_sequence_map)
+        return out
+
+    def _check_aa_composition(self, aa_sequence_map=None):
+        out={}
+        for sequence in aa_sequence_map.get_sequences().values():
+            for aa in sequence:
+                c=out.get(aa)
+                if c is None:
+                    c=Counter()
+                    out[aa]=c
+                c.add()
+        sorted_items = sorted(out.items(), key=lambda item: item[1]._value)
+        out = dict(sorted_items)
         return out

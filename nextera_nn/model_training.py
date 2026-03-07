@@ -1,6 +1,7 @@
 from aa_sequence_map import AaSequenceMap
 from  sanity_checker import SequenceSanityChecker
 from features import Features
+import evaluation
 from datasets import Dataset
 import torch
 from torch.utils.data import DataLoader, TensorDataset
@@ -29,22 +30,7 @@ def tokenize_function(example):
 )
 
 def run_training(train_ds, val_ds, epochs = 3):
-    #tokenizer = RobertaTokenizer.from_pretrained("mogam-ai/Ab-RoBERTa", do_lower_case=False)
-    # applying the tokenization function to the entire dataset in batches
-    tokenized_dataset = train_ds.map(tokenize_function, batched=True)
-    df_train = tokenized_dataset.to_pandas()
-    # extracting input_ids, attention mask, and label from the DataFrame and converting to numpy array
-    X_train_inputs = np.array(list(df_train['input_ids']))
-    X_train_attention = np.array(list(df_train['attention_mask']))
-    y_train = df_train['label']
-    # converting to tensors
-    train_inputs = torch.tensor(X_train_inputs)
-    train_attention = torch.tensor(X_train_attention)
-    train_labels = torch.tensor(y_train.values)
-    # creating a TensorDataset from inputs, attention masks, and labels
-    train_data = TensorDataset(train_inputs, train_attention, train_labels)
-    # creating a DataLoader for batching the train data
-    train_dataloader = DataLoader(train_data, batch_size=16, shuffle=True)
+    train_dataloader = _create_data_loader(train_ds)
     model_name = "mogam-ai/Ab-RoBERTa"
     num_labels = 2
     # model = RobertaModel.from_pretrained(model_name, add_pooling_layer=False)
@@ -55,6 +41,7 @@ def run_training(train_ds, val_ds, epochs = 3):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
     _run_epochs(device, model, optimizer, train_dataloader, epochs)
+    _run_test(device, model, val_ds)
 
 def _run_epochs(device, model, optimizer, train_dataloader, epochs):
     for epoch in range(epochs):
@@ -71,48 +58,30 @@ def _run_epochs(device, model, optimizer, train_dataloader, epochs):
         avg_train_loss = total_loss / len(train_dataloader)
         print(f"Epoch {epoch + 1}, Average Training Loss: {avg_train_loss:.4f}")
 
-def _run_test(test_ds):
-    tokenized_dataset = test_ds.map(tokenize_function, batched=True)
-    df_test = tokenized_dataset.to_pandas()
-    X_test_inputs = np.array(list(df_test['input_ids']))
-    X_test_attention = np.array(list(df_test['attention_mask']))
-    y_test = df_test['signal']
-    # converting input_ids to tensor
-    test_inputs = torch.tensor(X_test_inputs)
-    test_attention = torch.tensor(X_test_attention)
-    test_labels = torch.tensor(y_test.values)
-    # creating a TensorDataset & DataLoader from inputs, attention masks, and labels
-    test_data = TensorDataset(test_inputs, test_attention, test_labels)
-    test_dataloader = DataLoader(test_data, batch_size=16)
+def _run_test(device, model, test_ds):
+    test_dataloader = _create_data_loader(test_ds)
+    baseline_predictions, true_labels = evaluation._get_predictions(device, model, test_dataloader)
+    evaluation._print_report(true_labels, baseline_predictions)
 
-def get_predictions(device, model, dataloader):
-    # setting the model to evaluation mode
-    model.eval()
-    predictions = []
-    true_labels = []
-    with torch.no_grad():
-        for batch in dataloader:
-            b_input_ids, b_attention_mask, b_labels = [t.to(device) for t in batch]
-            # forward pass to obtain model outputs
-            outputs = model(b_input_ids, attention_mask=b_attention_mask)
-            # extracting logits
-            logits = outputs.logits
-            # predicting the class with the highest score
-            predicted_class = torch.argmax(logits, dim=1)
-            # storing predictions and true labels for the current batch
-            predictions.extend(predicted_class.cpu().numpy())
-            true_labels.extend(b_labels.cpu().numpy())
-    return predictions, true_labels
-
-
-
+def _create_data_loader(ds):
+    tokenized_dataset = ds.map(tokenize_function, batched=True)
+    df = tokenized_dataset.to_pandas()
+    X_inputs = np.array(list(df['input_ids']))
+    X_attention = np.array(list(df['attention_mask']))
+    y = df['label']
+    inputs = torch.tensor(X_inputs)
+    attention = torch.tensor(X_attention)
+    labels = torch.tensor(y.values)
+    t_ds = TensorDataset(inputs, attention, labels)
+    out = DataLoader(t_ds, batch_size=16, shuffle=True)
+    return out
 
 
 
 imp_specific = AaSequenceMap("C:/Nextera/div/ab_roberta/prame_specific_seqs.txt", tag=0)
 #imp_specific=FastaImporter("C:/Nextera/div/ab_roberta/test.fa", True, True)
 removed1=imp_specific.remove_sequences(disallowed_aas=['X'])
-imp_background=AaSequenceMap("C:/Nextera/div/ab_roberta/r0_n_250.txt", tag=1)
+imp_background=AaSequenceMap("C:/Nextera/div/ab_roberta/EXPLORER/r0_n250_ighv.txt", tag=1)
 imps=[imp_specific, imp_background]
 checker= SequenceSanityChecker(imps)
 checker.check_aas()
@@ -130,6 +99,7 @@ multi_occ_WG=checker.check_motif('WG', multiple_occurrences_only=True)
 single_occ_TVSS=checker.check_motif('TVSS')
 multi_occ_TVSS=checker.check_motif('TVSS', multiple_occurrences_only=True)
 
+composition=checker.check_aa_composition()
 
 f=Features()
 f.add(imp_specific)
