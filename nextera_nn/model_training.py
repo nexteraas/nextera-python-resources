@@ -94,6 +94,6 @@ train_f, test_f=f.split_train_test(train_proportion=0.99)
 
 df=train_f.export_to_dataframe()
 
-train_f.iterate_k_fold_validation(run_training, n_splits=5, shuffle=True, random_state=42)
+train_f.iterate_k_fold_validation(run_training, epochs=20,  n_splits=5, shuffle=True, random_state=42)
 
 df=9

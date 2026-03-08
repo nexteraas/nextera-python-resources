@@ -96,7 +96,7 @@ class Features(object):
         out = Dataset.from_pandas(df)
         return out
 
-    def iterate_k_fold_validation(self, exec_func, n_splits=5, shuffle=True, random_state=42):
+    def iterate_k_fold_validation(self, exec_func,epochs=3, n_splits=5, shuffle=True, random_state=42):
         skf = StratifiedKFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
         ds=self.export_to_dataset(randomize=True)
         labels = np.array(ds["label"])
@@ -104,7 +104,7 @@ class Features(object):
             print(f"--- Fold {fold + 1}/{n_splits} ---")
             train_ds = ds.select(train_idx)
             val_ds = ds.select(val_idx)
-            exec_func(train_ds, val_ds, 3)
+            exec_func(train_ds, val_ds, epochs)
 
         # performance_metrics = []
         # for fold_idx, (train_indices, val_indices) in enumerate(skf.split(X, y)):
