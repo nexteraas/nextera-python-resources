@@ -5,6 +5,12 @@ class Counter(object):
     def add(self, number=1):
         self._value += number
 
+    def get_value(self):
+        return self._value
+
+    def __str__(self):
+        return str(self._value)
+
 
 class SequenceSanityChecker(object):
     def __init__(self, aa_sequence_maps):
@@ -100,10 +106,12 @@ class SequenceSanityChecker(object):
             out = self._check_aa_composition(aa_sequence_map)
         return out
 
-    def _check_aa_composition(self, aa_sequence_map=None):
+    def _check_aa_composition(self, aa_sequence_map):
         out={}
+        tot = 0
         for sequence in aa_sequence_map.get_sequences().values():
             for aa in sequence:
+                tot += 1
                 c=out.get(aa)
                 if c is None:
                     c=Counter()
@@ -111,4 +119,48 @@ class SequenceSanityChecker(object):
                 c.add()
         sorted_items = sorted(out.items(), key=lambda item: item[1]._value)
         out = dict(sorted_items)
+        for key, value in out.items():
+            out[key]=value.get_value() / tot
+        return out
+
+    def create_std_report(self):
+        out='Sanity checker report:\n'
+        out += 'Tags:\n'
+        for aa_map in self._aa_sequence_maps:
+            out += str(aa_map.get_tag()) + ': ' + str(aa_map.get_fn()) + '\n'
+        out+='Checking legal Aas...\n'
+        self.check_aas()
+        out+='Done!\n'
+        out+='Checking sequences max. lengths:\n'
+        for aa_map in self._aa_sequence_maps:
+            max = self.get_max_lengths(aa_map)
+            out+=str(aa_map.get_tag()) + ': ' + str(max) + '\n'
+        out += 'Checking sequences Aa counts, -2 to end:\n'
+        for aa_map in self._aa_sequence_maps:
+            aacount = self.check_unique_aa_counts(position_from=-2, position_to=None, aa_sequence_map=aa_map)
+            out+=str(aa_map.get_tag()) + ': ' + str(aacount) + '\n'
+        for key, value in aacount.items():
+            out+=str(key) + ': ' + str(value) + '\n'
+        out += 'Checking sequences Aa motif "CAR":\n'
+        single_occ = self.check_motif('CAR')
+        for key, value in single_occ.items():
+            out+=str(key) + ': ' + str(value) + '\n'
+        out += 'Checking sequences Aa motif "WG":\n'
+        single_occ = self.check_motif('WG')
+        for key, value in single_occ.items():
+            out+=str(key) + ': ' + str(value) + '\n'
+        out += 'Checking sequences Aa motif "TVSS":\n'
+        single_occ = self.check_motif('TVSS')
+        for key, value in single_occ.items():
+            out+=str(key) + ': ' + str(value) + '\n'
+        out += 'Checking sequences Aa compositions:\n'
+        composition = self.check_aa_composition()
+        for key, value in composition.items():
+            out+=str(key) + ': '
+            for i in range(len(value)-1,0,-1):
+                k = list(value.keys())[i]
+                comp = value.get(k)
+                out+=k + ':' + str(comp)+ '; '
+            out+='\n'
+
         return out

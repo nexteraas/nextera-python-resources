@@ -77,35 +77,20 @@ def _create_data_loader(ds):
     return out
 
 
-
 imp_specific = AaSequenceMap("C:/Nextera/div/ab_roberta/prame_specific_seqs.txt", tag=0)
 #imp_specific=FastaImporter("C:/Nextera/div/ab_roberta/test.fa", True, True)
 removed1=imp_specific.remove_sequences(disallowed_aas=['X'])
 imp_background=AaSequenceMap("C:/Nextera/div/ab_roberta/EXPLORER/r0_n250_ighv.txt", tag=1)
 imps=[imp_specific, imp_background]
 checker= SequenceSanityChecker(imps)
-checker.check_aas()
-max1=checker.get_max_lengths(imp_specific)
-max2=checker.get_max_lengths(imp_background)
-aacount1=checker.check_unique_aa_counts(position_from=-2, position_to=None, aa_sequence_map=imp_specific)
-aacount2=checker.check_unique_aa_counts(position_from=-2, position_to=None, aa_sequence_map=imp_background)
-
-single_occ_CAR=checker.check_motif('CAR')
-multi_occ_CAR=checker.check_motif('CAR', multiple_occurrences_only=True)
-
-single_occ_WG=checker.check_motif('WG')
-multi_occ_WG=checker.check_motif('WG', multiple_occurrences_only=True)
-
-single_occ_TVSS=checker.check_motif('TVSS')
-multi_occ_TVSS=checker.check_motif('TVSS', multiple_occurrences_only=True)
-
-composition=checker.check_aa_composition()
+rep=checker.create_std_report()
+print(rep)
 
 f=Features()
 f.add(imp_specific)
 f.add(imp_background)
 f.balance()
-train_f, test_f=f.split_train_test()
+train_f, test_f=f.split_train_test(train_proportion=0.99)
 
 df=train_f.export_to_dataframe()
 
