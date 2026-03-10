@@ -78,23 +78,26 @@ class SequenceSanityChecker(object):
             new_c=c+1
             counter[subseq]=new_c
 
-    def get_max_lengths(self, aa_sequence_map=None):
-        out=0
+    def get_seq_lengths(self, aa_sequence_map=None):
         if aa_sequence_map is None:
+            out={}
             for aa_map in self._aa_sequence_maps:
-                tmp = self._check_max_lengths(aa_map)
-                if tmp >out:
-                    out = tmp
+                avg, max = self._get_seq_lengths(aa_map)
+                out[aa_map.get_tag()] = [avg, max]
         else:
-            out = self._check_max_lengths(aa_sequence_map)
-        return out
+            avg, max = self._get_seq_lengths(aa_sequence_map)
+        return avg, max
 
-    def _check_max_lengths(self, aa_sequence_map):
-        out=0
+    def _get_seq_lengths(self, aa_sequence_map):
+        max=0
+        avg=0
         for sequence in aa_sequence_map.get_sequences().values():
-            if out<len(sequence):
-                out=len(sequence)
-        return out
+            l = len(sequence)
+            avg+=l
+            if max<l:
+                max=l
+        avg=avg/len(aa_sequence_map.get_sequences())
+        return avg, max
 
     def check_aa_composition(self, aa_sequence_map=None):
         out = {}
@@ -131,10 +134,10 @@ class SequenceSanityChecker(object):
         out+='Checking legal Aas...\n'
         self.check_aas()
         out+='Done!\n'
-        out+='Checking sequences max. lengths:\n'
+        out+='Checking sequences lengths:\n'
         for aa_map in self._aa_sequence_maps:
-            max = self.get_max_lengths(aa_map)
-            out+=str(aa_map.get_tag()) + ': ' + str(max) + '\n'
+            avg, max= self.get_seq_lengths(aa_map)
+            out+=str(aa_map.get_tag()) + ': ' + str(avg) + '; ' + str(max) + '\n'
         out += 'Checking sequences Aa counts, -2 to end:\n'
         for aa_map in self._aa_sequence_maps:
             aacount = self.check_unique_aa_counts(position_from=-2, position_to=None, aa_sequence_map=aa_map)
