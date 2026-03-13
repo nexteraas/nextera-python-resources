@@ -99,6 +99,26 @@ class SequenceSanityChecker(object):
         avg=avg/len(aa_sequence_map.get_sequences())
         return avg, max
 
+    def get_duplicates(self, aa_sequence_map=None):
+        out = {}
+        if aa_sequence_map is None:
+            for aa_map in self._aa_sequence_maps:
+                tmp = self._get_duplicates(aa_map)
+                out[aa_map.get_tag()] = tmp
+        else:
+            out = self._get_duplicates(aa_sequence_map)
+        return out
+
+    def _get_duplicates(self, aa_sequence_map):
+        tmp={}
+        for key, sequence in aa_sequence_map.get_sequences().items():
+            if tmp.get(sequence) is not None:
+                pass
+            tmp[sequence] = key
+        c1 = len(aa_sequence_map.get_sequences())
+        c2 = len(tmp)
+        return c1-c2
+
     def check_aa_composition(self, aa_sequence_map=None):
         out = {}
         if aa_sequence_map is None:
@@ -138,6 +158,10 @@ class SequenceSanityChecker(object):
         for aa_map in self._aa_sequence_maps:
             avg, max= self.get_seq_lengths(aa_map)
             out+=str(aa_map.get_tag()) + ': ' + str(avg) + '; ' + str(max) + '\n'
+        out += 'Checking duplicates:\n'
+        for aa_map in self._aa_sequence_maps:
+            dup = self.get_duplicates(aa_map)
+            out += str(aa_map.get_tag()) + ': ' + str(dup) + '\n'
         out += 'Checking sequences Aa counts, -2 to end:\n'
         for aa_map in self._aa_sequence_maps:
             aacount = self.check_unique_aa_counts(position_from=-2, position_to=None, aa_sequence_map=aa_map)
@@ -156,6 +180,18 @@ class SequenceSanityChecker(object):
         single_occ = self.check_motif('TVSS')
         for key, value in single_occ.items():
             out+=str(key) + ': ' + str(value) + '\n'
+        out += 'Checking sequences Aa motif "CQQ":\n'
+        single_occ = self.check_motif('CQQ')
+        for key, value in single_occ.items():
+            out += str(key) + ': ' + str(value) + '\n'
+        out += 'Checking sequences Aa motif "FG":\n'
+        single_occ = self.check_motif('FG')
+        for key, value in single_occ.items():
+            out += str(key) + ': ' + str(value) + '\n'
+        out += 'Checking sequences Aa motif "KVEIK":\n'
+        single_occ = self.check_motif('KVEIK')
+        for key, value in single_occ.items():
+            out += str(key) + ': ' + str(value) + '\n'
         out += 'Checking sequences Aa compositions:\n'
         composition = self.check_aa_composition()
         for key, value in composition.items():
