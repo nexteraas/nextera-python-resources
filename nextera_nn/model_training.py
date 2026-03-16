@@ -34,10 +34,17 @@ def run_training(train_ds, val_ds, epochs = 3):
     optimizer = AdamW(model.parameters(), lr=5e-5)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
-    _run_epochs(device, model, optimizer, train_dataloader, epochs)
-    _run_test(device, model, val_ds)
+    first_model, best_model = _run_epochs(device, model, optimizer, train_dataloader, epochs)
+    #_run_test(device, model, val_ds)
+    print('First model:')
+    _run_test(device, first_model, val_ds)
+    print('Best model:')
+    _run_test(device, best_model, val_ds)
 
 def _run_epochs(device, model, optimizer, train_dataloader, epochs):
+    first_model = None
+    best_model = None
+    best_loss=float('inf')
     for epoch in range(epochs):
         model.train()
         total_loss = 0
@@ -50,7 +57,13 @@ def _run_epochs(device, model, optimizer, train_dataloader, epochs):
             loss.backward()
             optimizer.step()
         avg_train_loss = total_loss / len(train_dataloader)
+        if avg_train_loss < best_loss:
+            best_loss = avg_train_loss
+            best_model = model
+        if first_model is None:
+            first_model = model
         print(f"Epoch {epoch + 1}, Average Training Loss: {avg_train_loss:.4f}")
+    return first_model, best_model
 
 def _run_test(device, model, test_ds):
     test_dataloader = _create_data_loader(test_ds)
