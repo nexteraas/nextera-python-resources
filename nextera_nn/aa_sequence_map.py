@@ -28,6 +28,18 @@ class AaSequenceMap(object):
         if self._productive_only:
             self._remove_unproductive()
 
+    def get_unique_sequences(self):
+        tmp={}
+        out_seqs={}
+        for key, seq in self._sequences.items():
+            x = tmp.get(seq)
+            if x is None:
+                tmp[seq]=seq
+                out_seqs[key] = seq
+        out = AaSequenceMap(self._fn, sequences=out_seqs, remove_gaps=self._remove_gaps,
+                            productive_only=self._productive_only, tag=self._tag)
+        return out
+
     def get_tag(self):
         if self._tag is None:
             return self._fn
