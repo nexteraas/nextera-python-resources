@@ -2,16 +2,12 @@ from aa_sequence_map import AaSequenceMap
 from  sanity_checker import SequenceSanityChecker
 from features import Features
 import evaluation
-from datasets import Dataset
 import torch
 from torch.utils.data import DataLoader, TensorDataset
-import pandas as pd
 import numpy as np
 from torch.optim import AdamW
 from transformers import (
     RobertaTokenizer,
-    RobertaModel,
-    RobertaForMaskedLM,
     RobertaForSequenceClassification,
 )
 
@@ -35,9 +31,7 @@ def run_training(train_ds, val_ds, epochs = 3):
     num_labels = 2
     # model = RobertaModel.from_pretrained(model_name, add_pooling_layer=False)
     model = RobertaForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
-    # set up the optimizer
     optimizer = AdamW(model.parameters(), lr=5e-5)
-    # put the model on device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
     _run_epochs(device, model, optimizer, train_dataloader, epochs)
@@ -95,5 +89,3 @@ train_f, test_f=f.split_train_test(train_proportion=0.99)
 df=train_f.export_to_dataframe()
 
 train_f.iterate_k_fold_validation(run_training, epochs=20,  n_splits=5, shuffle=True, random_state=42)
-
-df=9

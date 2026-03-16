@@ -1,7 +1,6 @@
 import random
 import copy
 from aa_sequence_map import AaSequenceMap
-from  sanity_checker import SequenceSanityChecker
 import pandas as pd
 from datasets import Dataset
 from sklearn.model_selection import StratifiedKFold
