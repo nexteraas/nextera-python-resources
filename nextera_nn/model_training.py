@@ -34,7 +34,9 @@ def run_training(train_ds, val_ds, epochs = 3, fold=0):
     optimizer = AdamW(model.parameters(), lr=5e-5)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
-    _run_epochs(device, model, optimizer, train_dataloader, epochs, fold)
+    _run_epochs(device, model, optimizer, train_dataloader, epochs, early_stopping_criteria=3, fold=fold)
+    #loading model, rather than just continuing to use model 'model'
+    model.load_state_dict(torch.load(f"roberta_base_fold_{fold}.pt", weights_only=True))
     _run_test(device, model, val_ds)
 
 def _run_epochs(device, model, optimizer, train_dataloader, epochs, early_stopping_criteria=3, fold=0):
