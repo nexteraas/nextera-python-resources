@@ -105,7 +105,7 @@ class Features(object):
             print(f"--- Fold {fold + 1}/{n_splits} ---")
             train_ds = ds.select(train_idx)
             val_ds = ds.select(val_idx)
-            exec_func(train_ds, val_ds, epochs)
+            exec_func(train_ds, val_ds, epochs, fold)
 
         # performance_metrics = []
         # for fold_idx, (train_indices, val_indices) in enumerate(skf.split(X, y)):

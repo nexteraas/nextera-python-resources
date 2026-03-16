@@ -25,7 +25,7 @@ def tokenize_function(example):
         return_attention_mask=True
 )
 
-def run_training(train_ds, val_ds, epochs = 3):
+def run_training(train_ds, val_ds, epochs = 3, fold=0):
     train_dataloader = _create_data_loader(train_ds)
     model_name = "mogam-ai/Ab-RoBERTa"
     num_labels = 2
@@ -34,17 +34,12 @@ def run_training(train_ds, val_ds, epochs = 3):
     optimizer = AdamW(model.parameters(), lr=5e-5)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
-    first_model, best_model = _run_epochs(device, model, optimizer, train_dataloader, epochs)
-    #_run_test(device, model, val_ds)
-    print('First model:')
-    _run_test(device, first_model, val_ds)
-    print('Best model:')
-    _run_test(device, best_model, val_ds)
+    _run_epochs(device, model, optimizer, train_dataloader, epochs, fold)
+    _run_test(device, model, val_ds)
 
-def _run_epochs(device, model, optimizer, train_dataloader, epochs):
-    first_model = None
-    best_model = None
+def _run_epochs(device, model, optimizer, train_dataloader, epochs, early_stopping_criteria=3, fold=0):
     best_loss=float('inf')
+    early_stopping_counter = 0
     for epoch in range(epochs):
         model.train()
         total_loss = 0
@@ -57,13 +52,16 @@ def _run_epochs(device, model, optimizer, train_dataloader, epochs):
             loss.backward()
             optimizer.step()
         avg_train_loss = total_loss / len(train_dataloader)
-        if avg_train_loss < best_loss:
-            best_loss = avg_train_loss
-            best_model = model
-        if first_model is None:
-            first_model = model
         print(f"Epoch {epoch + 1}, Average Training Loss: {avg_train_loss:.4f}")
-    return first_model, best_model
+        if avg_train_loss < best_loss:
+            torch.save(model.state_dict(), f"roberta_base_fold_{fold}.pt")
+            best_loss = avg_train_loss
+            early_stopping_counter = 0
+        else:
+            early_stopping_counter += 1
+        if early_stopping_counter>=early_stopping_criteria:
+            print ('Early stopping triggered')
+            break
 
 def _run_test(device, model, test_ds):
     test_dataloader = _create_data_loader(test_ds)
@@ -99,8 +97,8 @@ f=Features()
 f.add(imp_specific)
 f.add(imp_background)
 f.balance()
-train_f, test_f=f.split_train_test(train_proportion=0.99)
+train_f, test_f=f.split_train_test(train_proportion=0.9999)
 
 df=train_f.export_to_dataframe()
 
-train_f.iterate_k_fold_validation(run_training, epochs=20,  n_splits=5, shuffle=True, random_state=42)
+train_f.iterate_k_fold_validation(run_training, epochs=5,  n_splits=5, shuffle=True, random_state=42)
