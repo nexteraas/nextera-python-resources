@@ -16,6 +16,12 @@ class SequenceSanityChecker(object):
     def __init__(self, aa_sequence_maps):
         self._aa_sequence_maps = aa_sequence_maps
 
+    def get_n(self):
+        out = {}
+        for aa_sequence_map in self._aa_sequence_maps:
+            out[aa_sequence_map.get_tag()]=len(aa_sequence_map.get_sequences())
+        return out
+
     def check_motif(self, motif, multiple_occurrences_only=False):
         out={}
         for aa_sequence_map in self._aa_sequence_maps:
@@ -148,9 +154,11 @@ class SequenceSanityChecker(object):
 
     def create_std_report(self):
         out='Sanity checker report:\n'
-        out += 'Tags:\n'
+        out += 'Tags (n):\n'
+        nn = self.get_n()
         for aa_map in self._aa_sequence_maps:
-            out += str(aa_map.get_tag()) + ': ' + str(aa_map.get_fn()) + '\n'
+            n = nn.get(aa_map.get_tag())
+            out += (str(aa_map.get_tag()) + ': ' + str(aa_map.get_fn()) + ' (n=' + str(n) + ')' + '\n')
         out+='Checking legal Aas...\n'
         self.check_aas()
         out+='Done!\n'

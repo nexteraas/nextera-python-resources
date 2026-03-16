@@ -17,8 +17,8 @@ class AaSequenceMap(object):
         for line in lines:
             if line.startswith('>'):
                 this_key = line[1:].strip()
-                if self._sequences.get(this_key) is not None:
-                    raise Exception(f"Duplicated header: {this_key}")
+                # if self._sequences.get(this_key) is not None:
+                #     raise Exception(f"Duplicated header: {this_key}")
                 self._sequences[this_key] = ''
             else:
                 s = line.upper().strip()

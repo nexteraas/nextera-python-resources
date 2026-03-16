@@ -77,10 +77,10 @@ def _create_data_loader(ds):
     return out
 
 
-imp_specific = AaSequenceMap("C:/Nextera/div/ab_roberta/prame_specific_seqs.txt", tag=0)
+imp_specific = AaSequenceMap("C:/Nextera/div/ab_roberta/mage_vs_prame/tbl_R3-MAGE_2.txt", tag=0)
 #imp_specific=FastaImporter("C:/Nextera/div/ab_roberta/test.fa", True, True)
 removed1=imp_specific.remove_sequences(disallowed_aas=['X'])
-imp_background=AaSequenceMap("C:/Nextera/div/ab_roberta/EXPLORER/r0_n250_ighv.txt", tag=1)
+imp_background=AaSequenceMap("C:/Nextera/div/ab_roberta/mage_vs_prame/tbl_R3-PRAME_2.txt", tag=1)
 imps=[imp_specific, imp_background]
 checker= SequenceSanityChecker(imps)
 rep=checker.create_std_report()

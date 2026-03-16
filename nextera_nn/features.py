@@ -29,6 +29,8 @@ class Features(object):
             self._balance(aa_map, count, mode)
 
     def _balance(self, aa_seq_map, count, mode):
+        if mode != 'copy_existing':
+            raise Exception(f"Illegal mode: {mode}")
         count_aa_seq_map=len(aa_seq_map.get_sequences())
         if count_aa_seq_map == count:
             return
