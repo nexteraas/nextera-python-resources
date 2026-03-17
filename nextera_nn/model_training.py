@@ -25,6 +25,10 @@ def tokenize_function(example):
         return_attention_mask=True
 )
 
+def _get_model_fn(fold):
+    out=f"ab-roberta_fold_{fold}.pt"
+    return out
+
 def run_training(train_ds, val_ds, epochs = 3, fold=0):
     train_dataloader = _create_data_loader(train_ds)
     model_name = "mogam-ai/Ab-RoBERTa"
@@ -36,7 +40,8 @@ def run_training(train_ds, val_ds, epochs = 3, fold=0):
     model.to(device)
     _run_epochs(device, model, optimizer, train_dataloader, epochs, early_stopping_criteria=3, fold=fold)
     #loading model, rather than just continuing to use model 'model'
-    model.load_state_dict(torch.load(f"roberta_base_fold_{fold}.pt", weights_only=True))
+    fn=_get_model_fn(fold)
+    model.load_state_dict(torch.load(fn, weights_only=True))
     _run_test(device, model, val_ds)
 
 def _run_epochs(device, model, optimizer, train_dataloader, epochs, early_stopping_criteria=3, fold=0):
@@ -56,7 +61,7 @@ def _run_epochs(device, model, optimizer, train_dataloader, epochs, early_stoppi
         avg_train_loss = total_loss / len(train_dataloader)
         print(f"Epoch {epoch + 1}, Average Training Loss: {avg_train_loss:.4f}")
         if avg_train_loss < best_loss:
-            torch.save(model.state_dict(), f"roberta_base_fold_{fold}.pt")
+            torch.save(model.state_dict(), _get_model_fn(fold))
             best_loss = avg_train_loss
             early_stopping_counter = 0
         else:
@@ -98,9 +103,9 @@ print(rep)
 f=Features()
 f.add(imp_specific)
 f.add(imp_background)
-f.balance()
+f.balance(len(imp_background.get_sequences()))
 train_f, test_f=f.split_train_test(train_proportion=0.9999)
 
 df=train_f.export_to_dataframe()
 
-train_f.iterate_k_fold_validation(run_training, epochs=5,  n_splits=5, shuffle=True, random_state=42)
+train_f.iterate_k_fold_validation(run_training, epochs=15,  n_splits=5, shuffle=True, random_state=42)
