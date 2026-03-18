@@ -89,23 +89,48 @@ def _create_data_loader(ds):
     return out
 
 
-imp_specific = AaSequenceMap("C:/Nextera/div/ab_roberta/mage_vs_prame/tbl_R3-MAGE_2.txt", tag=0)
-imp_specific=imp_specific.get_unique_sequences()
-#imp_specific=FastaImporter("C:/Nextera/div/ab_roberta/test.fa", True, True)
-removed1=imp_specific.remove_sequences(disallowed_aas=['X'])
-imp_background=AaSequenceMap("C:/Nextera/div/ab_roberta/mage_vs_prame/tbl_R3-PRAME_2.txt", tag=1)
-imp_background=imp_background.get_unique_sequences()
-imps = [imp_specific, imp_background]
-checker = SequenceSanityChecker(imps)
+def prepare_input(fn, tag):
+    out = AaSequenceMap(fn, tag=tag)
+    removed = out.remove_sequences(disallowed_aas=['X'])
+    if removed > 0:
+        print (f"'X'-containing sequences removed from {fn}: {removed}")
+    out = out.get_unique_sequences()
+    return out
+
+fn1 = "C:/Nextera/div/ab_roberta/mage_vs_prame/tbl_R3-MAGE_2.txt"
+fn2 = "C:/Nextera/div/ab_roberta/mage_vs_prame/tbl_R3-PRAME_2.txt"
+
+aa_seq_1 = prepare_input(fn1, 0)
+aa_seq_2 = prepare_input(fn2, 1)
+
+checker = SequenceSanityChecker([aa_seq_1, aa_seq_2])
 rep=checker.create_std_report()
 print(rep)
 
 f=Features()
-f.add(imp_specific)
-f.add(imp_background)
-f.balance(len(imp_background.get_sequences()))
-train_f, test_f=f.split_train_test(train_proportion=0.9999)
+f.add(aa_seq_1)
+f.add(aa_seq_2)
+train_f, test_f=f.split_train_test(train_proportion=0.9999999)
+balance = "max"
+train_f.iterate_k_fold_validation(run_training, epochs=15,  n_splits=5, shuffle=True, random_state=42, balance=balance)
 
-df=train_f.export_to_dataframe()
 
-train_f.iterate_k_fold_validation(run_training, epochs=15,  n_splits=5, shuffle=True, random_state=42)
+# imp_specific = AaSequenceMap(fn1, tag=0)
+# imp_specific=imp_specific.get_unique_sequences()
+# removed1=imp_specific.remove_sequences(disallowed_aas=['X'])
+# imp_background=AaSequenceMap(fn2, tag=1)
+# imp_background=imp_background.get_unique_sequences()
+# imps = [imp_specific, imp_background]
+# checker = SequenceSanityChecker(imps)
+# rep=checker.create_std_report()
+# print(rep)
+#
+# f=Features()
+# f.add(imp_specific)
+# f.add(imp_background)
+# f.balance(len(imp_background.get_sequences()))
+# train_f, test_f=f.split_train_test(train_proportion=0.9999)
+#
+# #df=train_f.export_to_dataframe()
+#
+# train_f.iterate_k_fold_validation(run_training, epochs=15,  n_splits=5, shuffle=True, random_state=42, balance_count=None)

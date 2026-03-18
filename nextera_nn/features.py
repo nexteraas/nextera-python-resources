@@ -97,7 +97,17 @@ class Features(object):
         out = Dataset.from_pandas(df)
         return out
 
-    def iterate_k_fold_validation(self, exec_func,epochs=3, n_splits=5, shuffle=True, random_state=42):
+    def iterate_k_fold_validation_OLD(self, exec_func,epochs=3, n_splits=5, shuffle=True, random_state=42, balance=None):
+        # if balance is not None:
+        #     tmp = []
+        #     for aa_map in self._aa_sequence_maps.values():
+        #         tmp.append(aa_map.get_sequences())
+        #     if balance=='max':
+        #         self.balance(max(tmp))
+        #     elif balance=='min':
+        #         self.balance(min(tmp))
+        #     else:
+        #         raise Exception(f"'balance' paramter unknown: {balance}")
         skf = StratifiedKFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
         ds=self.export_to_dataset(randomize=True)
         labels = np.array(ds["label"])
@@ -105,6 +115,39 @@ class Features(object):
             print(f"--- Fold {fold + 1}/{n_splits} ---")
             train_ds = ds.select(train_idx)
             val_ds = ds.select(val_idx)
+            exec_func(train_ds, val_ds, epochs, fold)
+
+    def _balance(self, balance, df):
+        if balance!="max":
+            raise Exception(f"Illegal balance: {balance}")
+        label_counts = df['label'].value_counts()
+        if len(label_counts)!=2:
+            raise Exception("Exactly 2 labels are required!")
+        lc_max = label_counts.idxmax()
+        lc_min = label_counts.idxmin()
+        minority_class = df[df['label'] == lc_min]
+        majority_class = df[df['label'] == lc_max]
+        x = (len(majority_class) // len(minority_class))
+        minority_upsampled = pd.concat([minority_class] * x)
+        remaining_needed = len(majority_class) - len(minority_upsampled)
+        minority_upsampled = pd.concat([minority_upsampled, minority_class.iloc[:remaining_needed]])
+        balanced_df = pd.concat([majority_class, minority_upsampled])
+        balanced_df = balanced_df.sample(frac=1).reset_index(drop=True)
+        return balanced_df
+
+    def iterate_k_fold_validation(self, exec_func, epochs=3, n_splits=5, shuffle=True, random_state=42,
+                                  balance=None):
+        skf = StratifiedKFold(n_splits=n_splits, shuffle=shuffle, random_state=random_state)
+        df = self.export_to_dataframe(randomize=True)
+        labels = np.array(df["label"])
+        for fold, (train_idx, val_idx) in enumerate(skf.split(df, labels)):
+            print(f"--- Fold {fold + 1}/{n_splits} ---")
+            train_df = df.iloc[train_idx]
+            val_df = df.iloc[val_idx]
+            if balance is not None:
+                train_df=self._balance(balance, train_df)
+            train_ds = Dataset.from_pandas(train_df)
+            val_ds = Dataset.from_pandas(val_df)
             exec_func(train_ds, val_ds, epochs, fold)
 
         # performance_metrics = []
