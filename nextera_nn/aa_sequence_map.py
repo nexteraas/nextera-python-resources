@@ -57,6 +57,12 @@ class AaSequenceMap(object):
     def get_fn(self):
         return self._fn
 
+    def get_remove_gaps(self):
+        return self._remove_gaps
+
+    def get_productive_only(self):
+        return self._productive_only
+
     def get_sequence_list(self):
         out=[]
         for s in self._sequences.values():

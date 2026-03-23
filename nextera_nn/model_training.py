@@ -1,4 +1,5 @@
 from aa_sequence_map import AaSequenceMap
+from sequence_merger import SequenceMerger, AaSequenceMapMerger
 from  sanity_checker import SequenceSanityChecker
 from features import Features
 import evaluation
@@ -97,11 +98,47 @@ def prepare_input(fn, tag):
     out = out.get_unique_sequences()
     return out
 
-fn1 = "C:/Nextera/div/ab_roberta/mage_vs_prame/tbl_R3-MAGE_2.txt"
-fn2 = "C:/Nextera/div/ab_roberta/mage_vs_prame/tbl_R3-PRAME_2.txt"
+fn1 = "C:/Nextera/\div/ab_roberta/paired_seqs/r3_mage_hs.txt"
+fn2 = "C:/Nextera/div/ab_roberta/paired_seqs/r3_prame_hs.txt"
+
+
+map1=AaSequenceMap(fn1)
+merger1=AaSequenceMapMerger(map1)
+map2=AaSequenceMap(fn2)
+merger2=AaSequenceMapMerger(map2)
+
+aa_seq_1=merger1.get_merged_sequences()
+aa_seq_1=aa_seq_1.get_unique_sequences()
+
+aa_seq_2=merger2.get_merged_sequences()
+aa_seq_2=aa_seq_2.get_unique_sequences()
+
+checker = SequenceSanityChecker([aa_seq_1, aa_seq_2])
+rep=checker.create_std_report()
+print(rep)
+
+f=Features()
+f.add(aa_seq_1)
+f.add(aa_seq_2)
+train_f, test_f=f.split_train_test(train_proportion=0.9999999)
+balance = None
+train_f.iterate_k_fold_validation(run_training, epochs=15,  n_splits=5, shuffle=True, random_state=42, balance=balance)
+
+
+exit(0)
+
+
 
 aa_seq_1 = prepare_input(fn1, 0)
 aa_seq_2 = prepare_input(fn2, 1)
+
+# tmp={}
+# for s in aa_seq_1.get_sequences():
+#     tmp[s]=s
+# for s in aa_seq_2.get_sequences():
+#     tmp[s]=s
+# print (len(tmp))
+# print(len(aa_seq_1.get_sequences()) + len(aa_seq_2.get_sequences()))
 
 checker = SequenceSanityChecker([aa_seq_1, aa_seq_2])
 rep=checker.create_std_report()
