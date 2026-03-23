@@ -102,9 +102,9 @@ fn1 = "C:/Nextera/\div/ab_roberta/paired_seqs/r3_mage_hs.txt"
 fn2 = "C:/Nextera/div/ab_roberta/paired_seqs/r3_prame_hs.txt"
 
 
-map1=AaSequenceMap(fn1)
+map1=AaSequenceMap(fn1, tag=0)
 merger1=AaSequenceMapMerger(map1)
-map2=AaSequenceMap(fn2)
+map2=AaSequenceMap(fn2, tag=1)
 merger2=AaSequenceMapMerger(map2)
 
 aa_seq_1=merger1.get_merged_sequences()
