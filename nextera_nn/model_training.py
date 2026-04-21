@@ -12,7 +12,11 @@ from transformers import (
     RobertaForSequenceClassification,
 )
 
-tokenizer = RobertaTokenizer.from_pretrained("mogam-ai/Ab-RoBERTa", do_lower_case=False)
+#tokenizer = RobertaTokenizer.from_pretrained("mogam-ai/Ab-RoBERTa", do_lower_case=False)
+
+from transformers import AutoTokenizer
+tokenizer = AutoTokenizer.from_pretrained("facebook/esm2_t30_150M_UR50D")
+
 
 def tokenize_function(example):
     return tokenizer(
@@ -32,7 +36,8 @@ def _get_model_fn(fold):
 
 def run_training(train_ds, val_ds, epochs = 3, fold=0):
     train_dataloader = _create_data_loader(train_ds)
-    model_name = "mogam-ai/Ab-RoBERTa"
+    #model_name = "mogam-ai/Ab-RoBERTa"
+    model_name = "facebook/esm2_t30_150M_UR50D"
     num_labels = 2
     # model = RobertaModel.from_pretrained(model_name, add_pooling_layer=False)
     model = RobertaForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
@@ -98,8 +103,8 @@ def prepare_input(fn, tag):
     out = out.get_unique_sequences()
     return out
 
-fn1 = "C:/Nextera/\div/ab_roberta/paired_seqs/r3_mage_hs.txt"
-fn2 = "C:/Nextera/div/ab_roberta/paired_seqs/r3_prame_hs.txt"
+fn1 = "C:/Nextera/div/ab_roberta/mage_vs_prame/chain2_chain1/mage_hs.txt"
+fn2 = "C:/Nextera/div/ab_roberta/mage_vs_prame/chain2_chain1/prame_ls.txt"
 
 
 map1=AaSequenceMap(fn1, tag=0)
