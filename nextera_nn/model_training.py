@@ -8,15 +8,13 @@ from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 from torch.optim import AdamW
 from transformers import (
-    RobertaTokenizer,
-    RobertaForSequenceClassification,
+    RobertaTokenizer, RobertaForSequenceClassification, RobertaModel,AutoTokenizer,
 )
 
 #tokenizer = RobertaTokenizer.from_pretrained("mogam-ai/Ab-RoBERTa", do_lower_case=False)
+model_name = "facebook/esm2_t30_150M_UR50D"
 
-from transformers import AutoTokenizer
-tokenizer = AutoTokenizer.from_pretrained("facebook/esm2_t30_150M_UR50D")
-
+tokenizer = AutoTokenizer.from_pretrained(model_name)
 
 def tokenize_function(example):
     return tokenizer(
@@ -36,16 +34,12 @@ def _get_model_fn(fold):
 
 def run_training(train_ds, val_ds, epochs = 3, fold=0):
     train_dataloader = _create_data_loader(train_ds)
-    #model_name = "mogam-ai/Ab-RoBERTa"
-    model_name = "facebook/esm2_t30_150M_UR50D"
     num_labels = 2
-    # model = RobertaModel.from_pretrained(model_name, add_pooling_layer=False)
     model = RobertaForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
     optimizer = AdamW(model.parameters(), lr=5e-5)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
     _run_epochs(device, model, optimizer, train_dataloader, epochs, early_stopping_criteria=3, fold=fold)
-    #loading model, rather than just continuing to use model 'model'
     fn=_get_model_fn(fold)
     model.load_state_dict(torch.load(fn, weights_only=True))
     _run_test(device, model, val_ds)
@@ -106,17 +100,8 @@ def prepare_input(fn, tag):
 fn1 = "C:/Nextera/div/ab_roberta/mage_vs_prame/chain2_chain1/mage_hs.txt"
 fn2 = "C:/Nextera/div/ab_roberta/mage_vs_prame/chain2_chain1/prame_ls.txt"
 
-
-map1=AaSequenceMap(fn1, tag=0)
-merger1=AaSequenceMapMerger(map1)
-map2=AaSequenceMap(fn2, tag=1)
-merger2=AaSequenceMapMerger(map2)
-
-aa_seq_1=merger1.get_merged_sequences()
-aa_seq_1=aa_seq_1.get_unique_sequences()
-
-aa_seq_2=merger2.get_merged_sequences()
-aa_seq_2=aa_seq_2.get_unique_sequences()
+aa_seq_1 = prepare_input(fn1, 0)
+aa_seq_2 = prepare_input(fn2, 1)
 
 checker = SequenceSanityChecker([aa_seq_1, aa_seq_2])
 rep=checker.create_std_report()
@@ -129,9 +114,7 @@ train_f, test_f=f.split_train_test(train_proportion=0.9999999)
 balance = None
 train_f.iterate_k_fold_validation(run_training, epochs=15,  n_splits=5, shuffle=True, random_state=42, balance=balance)
 
-
 exit(0)
-
 
 
 aa_seq_1 = prepare_input(fn1, 0)
