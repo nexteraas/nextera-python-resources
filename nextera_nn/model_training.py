@@ -92,7 +92,7 @@ def _create_data_loader(ds):
 
 def prepare_input(fn, tag):
     out = AaSequenceMap(fn, tag=tag)
-    removed = out.remove_sequences(disallowed_aas=['X'])
+    removed = out.remove_sequences(disallowed_aas=['X','MISSING'])
     if removed > 0:
         print (f"'X'-containing sequences removed from {fn}: {removed}")
     out = out.get_unique_sequences()

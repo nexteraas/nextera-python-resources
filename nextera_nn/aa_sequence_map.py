@@ -69,10 +69,16 @@ class AaSequenceMap(object):
             out.append(s)
         return out
 
-    def remove_sequences(self, disallowed_aas=[]):
-        disallowed_aas = [aa.upper() for aa in disallowed_aas]
-        keys_to_remove = [key for key, value in self._sequences.items() if
-                          self._contains_any_char(value, disallowed_aas)]
+    def remove_sequences(self, disallowed_text=[]):
+        #disallowed_aas = [aa.upper() for aa in disallowed_aas]
+        keys_to_remove = []
+        for key, value in self._sequences.items():
+            for t in disallowed_text:
+                if t in value:
+                    keys_to_remove.append(key)
+                    break
+        #keys_to_remove = [key for key, value in self._sequences.items() if
+        #                  self._contains_any_char(value, disallowed_aas)]
         for key in keys_to_remove:
             del self._sequences[key]
         return len(keys_to_remove)
