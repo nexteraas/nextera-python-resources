@@ -8,7 +8,8 @@ from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 from torch.optim import AdamW
 from transformers import (
-    RobertaTokenizer, RobertaForSequenceClassification, RobertaModel,AutoTokenizer,
+    RobertaTokenizer, RobertaForSequenceClassification,
+    RobertaModel, AutoTokenizer, AutoModelForSequenceClassification,
 )
 
 #tokenizer = RobertaTokenizer.from_pretrained("mogam-ai/Ab-RoBERTa", do_lower_case=False)
@@ -20,7 +21,7 @@ def tokenize_function(example):
     return tokenizer(
         example['sequence'],
         add_special_tokens=True,
-        max_length=150,
+        max_length=250,
         padding='max_length',  # True,
         truncation=True,
         return_tensors="pt",
@@ -35,7 +36,7 @@ def _get_model_fn(fold):
 def run_training(train_ds, val_ds, epochs = 3, fold=0):
     train_dataloader = _create_data_loader(train_ds)
     num_labels = 2
-    model = RobertaForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
+    model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
     optimizer = AdamW(model.parameters(), lr=5e-5)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
