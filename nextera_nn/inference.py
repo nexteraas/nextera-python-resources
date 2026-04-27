@@ -49,7 +49,6 @@ def run_inference_batch(model_fn, num_labels, seqs):
     predictions = torch.nn.functional.softmax(outputs.logits, dim=-1)
     return predictions
 
-
 def save_predictions(predictions, ids, fn):
     with open(fn, 'w') as f:
         id_i=0
@@ -57,7 +56,6 @@ def save_predictions(predictions, ids, fn):
             id=ids[id_i]
             id_i+=1
             f.write(f"{id}\n{i}\n")
-
 
 def prepare_input(fn, tag):
     out = AaSequenceMap(fn, tag=tag)
