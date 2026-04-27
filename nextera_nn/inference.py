@@ -8,8 +8,22 @@ from transformers import (
 model_name = "facebook/esm2_t30_150M_UR50D"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
+def run_inference(model_fn, num_labels, seqs, out_fn, batch_size=9):
+    seq_list = seqs.get_sequence_list()
+    id_list = seq_list.get_sequence_ids()
+    from_i = 0
+    batch=0
+    while True:
+        seq_batch=seq_list[from_i:from_i+batch_size-1]
+        predictions = run_inference_batch(model_fn, num_labels, seq_batch)
+        batch_fn=out_fn + str(batch)
+        save_predictions(predictions, id_list, batch_fn)
+        from_i+=batch_size
+        batch+=1
 
-def run_inference(model_fn, num_labels, seqs):
+
+
+def run_inference_batch(model_fn, num_labels, seqs):
     model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=num_labels)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
@@ -20,8 +34,9 @@ def run_inference(model_fn, num_labels, seqs):
     # in_list = [str1, str2]
 
     # 3. Tokenize them together
+    lst=seqs.get_sequence_list()
     inputs = tokenizer(
-        *seqs,
+        lst,
         padding=True,
         truncation=True,
         return_tensors="pt"
@@ -35,10 +50,13 @@ def run_inference(model_fn, num_labels, seqs):
     return predictions
 
 
-def save_predictions(predictions, fn):
+def save_predictions(predictions, ids, fn):
     with open(fn, 'w') as f:
+        id_i=0
         for i in predictions:
-            f.write(f"{i}\n")
+            id=ids[id_i]
+            id_i+=1
+            f.write(f"{id}\n{i}\n")
 
 
 def prepare_input(fn, tag):
@@ -51,10 +69,13 @@ def prepare_input(fn, tag):
         return None
     return out
 
-fn = "C:/Nextera/div/ab_roberta/mage_vs_prame/chain2_chain1/mage_hs.txt"
+fn = "C:/Nextera/div/ab_roberta/mage_prame_vs_tus/r0.txt"
 model_fn = "drive/MyDrive/esm_prame_hs.pt"
 
 seqs = prepare_input(fn, 0)
-indices = run_inference(model_fn, 2, seqs)
-out_fn = "drive/MyDrive/prame_indices.txt"
+if seqs is None:
+    exit(1)
+out_fn = "drive/MyDrive/prame_indices"
+indices = run_inference(model_fn, 2, seqs, out_fn, batch_size=9)
+
 save_predictions(indices, out_fn)
