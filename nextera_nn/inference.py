@@ -1,80 +1,15 @@
 import torch
-from pathlib import Path
-import os
 from aa_sequence_map import AaSequenceMap
 from transformers import (
    AutoTokenizer, AutoModelForSequenceClassification,
 )
-
-class InferenceResult():
-    def __init__(self, prob0, prob1):
-        self.prob0 = prob0
-        self.prob1 = prob1
-
-class InferenceResults():
-    def __init__(self, map=None):
-        self._map = map
-
-    def parse_results(self, fn):
-        self._map = {}
-        path_only = Path(fn).parent
-        fn_filename = Path(fn).stem
-        files_and_dirs = os.listdir(path_only)
-        for f in files_and_dirs:
-            # if os.path.isfile(f):
-            filename = Path(f).stem
-            if filename.startswith(fn_filename):
-                res = self._parse_result(os.path.join(path_only, filename))
-                self._map.update(res)
-
-    def _parse_result(self, fn):
-        out = {}
-        with open(fn, 'r') as file:
-            for line in file:
-                line = line.strip()
-                fields = line.split('\t')
-                id = fields[0]
-                probs = fields[1]
-                i1 = probs.find('[')
-                i2 = probs.find(']')
-                probs = probs[i1 + 1:i2]
-                probs = probs.split(",")
-                c0 = float(probs[0].strip())
-                c1 = float(probs[1].strip())
-                ifr = InferenceResult(c0, c1)
-                out[id] = ifr
-        return out
-
-    def get_sorted_list(self, inc=True, sort_on_prob0=True):
-        if sort_on_prob0:
-            out = sorted(self._map.items(), key=lambda item: item[1].prob0)
-        else:
-            out = sorted(self._map.items(), key=lambda item: item[1].prob1)
-        if not inc:
-            out.reverse()
-        return out
-
-    def filter(self, cutoff, above=True, prob0=True):
-        out={}
-        for k, v in self._map.items():
-            if prob0:
-                tmp = v.prob0
-            else:
-                tmp = v.prob1
-            if above:
-                if tmp >= cutoff:
-                    out[k]=v
-            else:
-                if tmp < cutoff:
-                    out[k]=v
-        return out
 
 
 
 model_name = "facebook/esm2_t30_150M_UR50D"
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-def run_inference(model_fn, num_labels, seqs, out_fn, batch_size=9):
+def run_inference(model_fn, num_labels, seqs, out_fn, batch_size=4000):
     seq_list = seqs.get_sequence_list()
     id_list = seqs.get_id_list()
     from_i = 0
@@ -133,17 +68,6 @@ def prepare_input(fn, tag):
         return None
     return out
 
-
-fn="C:/Nextera/div/ab_roberta/mage_prame_vs_tus/out/prame_indices"
-ifrs=InferenceResults()
-ifrs.parse_results(fn)
-lst=ifrs.get_sorted_list(False, True)
-c=lst
-
-x=ifrs.filter(0.5, True, True)
-ifrs=InferenceResults(x)
-lst=ifrs.get_sorted_list(False, True)
-exit(0)
 
 fn = "C:/Nextera/div/ab_roberta/mage_prame_vs_tus/r0.txt"
 model_fn = "drive/MyDrive/esm_prame_hs.pt"
