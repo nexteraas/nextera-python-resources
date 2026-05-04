@@ -1,6 +1,4 @@
 from transformers import AutoTokenizer
-from sklearn.model_selection import train_test_split
-from datasets import Dataset
 from transformers import AutoModelForSequenceClassification, TrainingArguments, Trainer
 from evaluate import load
 from aa_sequence_map import AaSequenceMap
@@ -9,75 +7,6 @@ from features import Features
 from sklearn.model_selection import StratifiedKFold
 import numpy as np
 
-# model_checkpoint = "facebook/esm2_t30_150M_UR50D"
-#
-# tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
-# def tokenize_function(example):
-#     return tokenizer(
-#         example['sequence'],
-#         add_special_tokens=True,
-#         max_length=250,
-#         padding='max_length',  # True,
-#         truncation=True,
-#         return_tensors="pt",
-#         return_special_tokens_mask=False,
-#         return_attention_mask=True
-# )
-
-def prepare_input(fn, tag):
-    out = AaSequenceMap(fn, tag=tag)
-    removed = out.remove_sequences(disallowed_text=['X','MISSING'])
-    out = out.get_unique_sequences()
-    return out
-
-fn1 = "C:/Nextera/div/ab_roberta/mage_vs_prame/chain2_chain1/mage_hs_2.txt"
-fn2 = "C:/Nextera/div/ab_roberta/mage_vs_prame/chain2_chain1/prame_hs_2.txt"
-
-aa_seq_1 = prepare_input(fn1, 0)
-aa_seq_2 = prepare_input(fn2, 1)
-
-checker = SequenceSanityChecker([aa_seq_1, aa_seq_2])
-rep=checker.create_std_report()
-print(rep)
-
-f=Features()
-f.add(aa_seq_1)
-f.add(aa_seq_2)
-
-#dataset = f.export_to_dataset()
-#dataset = dataset.map(tokenize_function, batched=True)
-#labels = dataset['label']
-
-#metric = load("accuracy")
-# def compute_metrics(eval_pred):
-#     predictions, labels = eval_pred
-#     predictions = np.argmax(predictions, axis=1)
-#     return metric.compute(predictions=predictions, references=labels)
-
-# def run_fold(dataset, train_idx, val_idx, batch_size=8):
-#     train_fold = dataset.select(train_idx)
-#     val_fold = dataset.select(val_idx)
-#     model = AutoModelForSequenceClassification.from_pretrained(model_checkpoint, num_labels=2)
-#     training_args = TrainingArguments(
-#         output_dir=f"./results_fold_{fold}",
-#         eval_strategy="epoch", save_strategy="epoch",learning_rate=2e-5,
-#         per_device_train_batch_size=batch_size, per_device_eval_batch_size=batch_size,
-#         num_train_epochs=3, weight_decay=0.01,
-#         load_best_model_at_end=True, metric_for_best_model="accuracy", push_to_hub=False,
-#     )
-#     trainer = Trainer(model=model, args=training_args,
-#                       train_dataset=train_fold, eval_dataset=val_fold, compute_metrics=compute_metrics,)
-#     trainer.train()
-#     fold_metrics = trainer.evaluate()
-#     results.append(fold_metrics)
-#
-# skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-# results = []
-# for fold, (train_idx, val_idx) in enumerate(skf.split(np.zeros(len(labels)), labels)):
-#     run_fold(dataset, train_idx, val_idx)
-#
-# avg_accuracy = np.mean([res['eval_accuracy'] for res in results])
-# print(f"Average Cross-Validation Accuracy: {avg_accuracy}")
 
 class EsmTrainer():
     def __init__(self, model, dataset, skf, batch_size=8):
@@ -129,6 +58,30 @@ class EsmTrainer():
             self._run_fold(train_idx, val_idx, fold,  results=results)
         avg_accuracy = np.mean([res['eval_accuracy'] for res in results])
         print(f"Average Cross-Validation Accuracy: {avg_accuracy}")
+
+
+
+
+def prepare_input(fn, tag):
+    out = AaSequenceMap(fn, tag=tag)
+    removed = out.remove_sequences(disallowed_text=['X','MISSING'])
+    out = out.get_unique_sequences()
+    return out
+
+fn1 = "C:/Nextera/div/ab_roberta/mage_vs_prame/chain2_chain1/mage_hs_2.txt"
+fn2 = "C:/Nextera/div/ab_roberta/mage_vs_prame/chain2_chain1/prame_hs_2.txt"
+
+aa_seq_1 = prepare_input(fn1, 0)
+aa_seq_2 = prepare_input(fn2, 1)
+
+checker = SequenceSanityChecker([aa_seq_1, aa_seq_2])
+rep=checker.create_std_report()
+print(rep)
+
+f=Features()
+f.add(aa_seq_1)
+f.add(aa_seq_2)
+
 
 skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 esmt=EsmTrainer(model="facebook/esm2_t30_150M_UR50D", dataset=f.export_to_dataset(), skf=skf, batch_size=8)
