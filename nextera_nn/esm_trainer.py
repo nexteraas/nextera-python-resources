@@ -47,11 +47,12 @@ f.add(aa_seq_1)
 f.add(aa_seq_2)
 
 #sequences = f.get_sequences_list()
-labels = f.get_labels_list()
+#labels = f.get_labels_list()
+
 dataset=f.export_to_dataset()
 
 dataset=dataset.map(tokenize_function, batched=True)
-
+labels = dataset.features['label'].names
 
 from sklearn.model_selection import StratifiedKFold
 import numpy as np
