@@ -46,11 +46,11 @@ f=Features()
 f.add(aa_seq_1)
 f.add(aa_seq_2)
 
-sequences = f.get_sequences_list()
+#sequences = f.get_sequences_list()
 labels = f.get_labels_list()
 dataset=f.export_to_dataset()
 
-
+dataset=dataset.map(tokenize_function, batched=True)
 
 
 from sklearn.model_selection import StratifiedKFold
@@ -70,28 +70,12 @@ skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 results = []
 
 for fold, (train_idx, val_idx) in enumerate(skf.split(np.zeros(len(labels)), labels)):
-    print(f"--- Training Fold {fold + 1} ---")
 
-    # train_seqs = [sequences[i] for i in train_idx]
-    # val_seqs = [sequences[i] for i in val_idx]
-    # train_labels = [labels[i] for i in train_idx]
-    # val_labels = [labels[i] for i in val_idx]
-    #
-    # train_map={'sequence': train_seqs, 'label':train_labels}
-    # val_map={'sequence': val_seqs, 'label':val_labels}
-
-    # Create fold-specific datasets
     train_fold = dataset.select(train_idx)
     val_fold = dataset.select(val_idx)
 
-    # tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
-    # train_tokenized = tokenizer(train_map)
-    # test_tokenized = tokenizer(val_map)
-
-    tokenized_train_dataset = train_fold.map(tokenize_function, batched=True)
-    tokenized_val_dataset = val_fold.map(tokenize_function, batched=True)
-
-
+    #tokenized_train_dataset = train_fold.map(tokenize_function, batched=True)
+    #tokenized_val_dataset = val_fold.map(tokenize_function, batched=True)
 
     # Initialize a NEW model for each fold to avoid data leakage
     model = AutoModelForSequenceClassification.from_pretrained(model_checkpoint, num_labels=2)
