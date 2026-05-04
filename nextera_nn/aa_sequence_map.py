@@ -75,6 +75,12 @@ class AaSequenceMap(object):
             out.append(s)
         return out
 
+    def get_map(self):
+        out = {}
+        for k, v in self._sequences.items():
+            out[k] = v
+        return out
+
     def remove_sequences(self, disallowed_text=[]):
         #disallowed_aas = [aa.upper() for aa in disallowed_aas]
         keys_to_remove = []

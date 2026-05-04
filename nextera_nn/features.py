@@ -18,6 +18,30 @@ class Features(object):
             k=key
         self._aa_sequence_maps[k] = aa_sequence_map
 
+    def get_sequences_list(self):
+        out = []
+        for aa_map in self._aa_sequence_maps.values():
+            seqs=aa_map.get_sequence_list()
+            t = aa_map.get_tag()
+            if not isinstance(t, int):
+                raise Exception(f"Tag property is not int: {t}")
+            for s in seqs:
+                out.append(s)
+        return out
+
+    def get_labels_list(self):
+        out = []
+        for aa_map in self._aa_sequence_maps.values():
+            seqs=aa_map.get_sequence_list()
+            t = aa_map.get_tag()
+            if not isinstance(t, int):
+                raise Exception(f"Tag property is not int: {t}")
+            for s in seqs:
+                out.append(t)
+        return out
+
+
+
     def balance(self, count=None, mode='copy_existing'):
         if count is None:
             counts=[]
@@ -95,6 +119,16 @@ class Features(object):
     def export_to_dataset(self, randomize=True):
         df=self.export_to_dataframe(randomize)
         out = Dataset.from_pandas(df)
+        return out
+
+    def export_to_map(self):
+        out = {}
+        for aa_map in self._aa_sequence_maps.values():
+            seqs=aa_map.get_sequence_list()
+            t = aa_map.get_tag()
+            if not isinstance(t, int):
+                raise Exception(f"Tag property is not int: {t}")
+            out[t]=seqs
         return out
 
     def iterate_k_fold_validation_OLD(self, exec_func,epochs=3, n_splits=5, shuffle=True, random_state=42, balance=None):

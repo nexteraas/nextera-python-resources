@@ -5,9 +5,24 @@ from transformers import AutoModelForSequenceClassification, TrainingArguments, 
 from evaluate import load
 import numpy as np
 from aa_sequence_map import AaSequenceMap
-from sequence_merger import SequenceMerger, AaSequenceMapMerger
 from  sanity_checker import SequenceSanityChecker
 from features import Features
+
+
+model_checkpoint = "facebook/esm2_t30_150M_UR50D"
+
+tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
+def tokenize_function(example):
+    return tokenizer(
+        example['sequence'],
+        add_special_tokens=True,
+        max_length=250,
+        padding='max_length',  # True,
+        truncation=True,
+        return_tensors="pt",
+        return_special_tokens_mask=False,
+        return_attention_mask=True
+)
 
 
 
@@ -31,14 +46,11 @@ f=Features()
 f.add(aa_seq_1)
 f.add(aa_seq_2)
 
-
-dataset=f.export_to_dataset(randomize=True)
-
-
-
+sequences = f.get_sequences_list()
+labels = f.get_labels_list()
+dataset=f.export_to_dataset()
 
 
-model_checkpoint = "facebook/esm2_t30_150M_UR50D"
 
 
 from sklearn.model_selection import StratifiedKFold
@@ -53,16 +65,33 @@ def compute_metrics(eval_pred):
 
 # Assuming 'dataset' is a Hugging Face Dataset object
 skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-labels = dataset['label']  # Extract labels for stratification
+#labels = dataset['label']  # Extract labels for stratification
 
 results = []
 
 for fold, (train_idx, val_idx) in enumerate(skf.split(np.zeros(len(labels)), labels)):
     print(f"--- Training Fold {fold + 1} ---")
 
+    # train_seqs = [sequences[i] for i in train_idx]
+    # val_seqs = [sequences[i] for i in val_idx]
+    # train_labels = [labels[i] for i in train_idx]
+    # val_labels = [labels[i] for i in val_idx]
+    #
+    # train_map={'sequence': train_seqs, 'label':train_labels}
+    # val_map={'sequence': val_seqs, 'label':val_labels}
+
     # Create fold-specific datasets
     train_fold = dataset.select(train_idx)
     val_fold = dataset.select(val_idx)
+
+    # tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
+    # train_tokenized = tokenizer(train_map)
+    # test_tokenized = tokenizer(val_map)
+
+    tokenized_train_dataset = train_fold.map(tokenize_function, batched=True)
+    tokenized_val_dataset = val_fold.map(tokenize_function, batched=True)
+
+
 
     # Initialize a NEW model for each fold to avoid data leakage
     model = AutoModelForSequenceClassification.from_pretrained(model_checkpoint, num_labels=2)
@@ -87,8 +116,8 @@ for fold, (train_idx, val_idx) in enumerate(skf.split(np.zeros(len(labels)), lab
     trainer = Trainer(
         model=model,
         args=training_args,
-        train_dataset=train_fold,
-        eval_dataset=val_fold,
+        train_dataset=tokenized_train_dataset,
+        eval_dataset=tokenized_val_dataset,
         compute_metrics=compute_metrics,
     )
 
