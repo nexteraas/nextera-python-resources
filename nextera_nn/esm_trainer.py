@@ -48,11 +48,11 @@ f.add(aa_seq_2)
 #dataset = dataset.map(tokenize_function, batched=True)
 #labels = dataset['label']
 
-metric = load("accuracy")
-def compute_metrics(eval_pred):
-    predictions, labels = eval_pred
-    predictions = np.argmax(predictions, axis=1)
-    return metric.compute(predictions=predictions, references=labels)
+#metric = load("accuracy")
+# def compute_metrics(eval_pred):
+#     predictions, labels = eval_pred
+#     predictions = np.argmax(predictions, axis=1)
+#     return metric.compute(predictions=predictions, references=labels)
 
 # def run_fold(dataset, train_idx, val_idx, batch_size=8):
 #     train_fold = dataset.select(train_idx)
@@ -86,6 +86,7 @@ class EsmTrainer():
         self._batch_size = batch_size
         self._dataset = dataset.map(self._tokenize_function, batched=True)
         self._labels = self._dataset['label']
+        self._metric = load("accuracy")
 
     def _tokenize_function(self, example):
         tokenizer = AutoTokenizer.from_pretrained(self._model)
@@ -100,6 +101,11 @@ class EsmTrainer():
             return_attention_mask=True
         )
 
+    def _compute_metrics(self, eval_pred):
+        predictions, labels = eval_pred
+        predictions = np.argmax(predictions, axis=1)
+        return self._metric.compute(predictions=predictions, references=labels)
+
     def _run_fold(self, train_idx, val_idx, fold, results):
         train_fold = self._dataset.select(train_idx)
         val_fold = self._dataset.select(val_idx)
@@ -112,7 +118,7 @@ class EsmTrainer():
             load_best_model_at_end=True, metric_for_best_model="accuracy", push_to_hub=False,
         )
         trainer = Trainer(model=model, args=training_args,
-                          train_dataset=train_fold, eval_dataset=val_fold, compute_metrics=compute_metrics, )
+                          train_dataset=train_fold, eval_dataset=val_fold, compute_metrics=self._compute_metrics, )
         trainer.train()
         fold_metrics = trainer.evaluate()
         results.append(fold_metrics)
