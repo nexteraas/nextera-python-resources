@@ -6,6 +6,7 @@ from  sanity_checker import SequenceSanityChecker
 from features import Features
 from sklearn.model_selection import StratifiedKFold
 import numpy as np
+from sklearn.metrics import classification_report
 
 
 class EsmTrainer():
@@ -32,6 +33,7 @@ class EsmTrainer():
 
     def _compute_metrics(self, eval_pred):
         predictions, labels = eval_pred
+        print(classification_report(labels, predictions))
         predictions = np.argmax(predictions, axis=1)
         return self._metric.compute(predictions=predictions, references=labels)
 
