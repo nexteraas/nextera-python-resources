@@ -33,8 +33,8 @@ class EsmTrainer():
 
     def _compute_metrics(self, eval_pred):
         predictions, labels = eval_pred
-        print(classification_report(labels, predictions))
         predictions = np.argmax(predictions, axis=1)
+        print(classification_report(labels, predictions))
         return self._metric.compute(predictions=predictions, references=labels)
 
     def _run_fold(self, train_idx, val_idx, fold, results):
