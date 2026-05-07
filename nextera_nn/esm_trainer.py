@@ -10,13 +10,14 @@ from sklearn.metrics import classification_report
 
 
 class EsmTrainer():
-    def __init__(self, model, dataset, skf, batch_size=8):
+    def __init__(self, model, dataset, skf, epochs=3, batch_size=8):
         self._skf = skf
         self._model = model
         self._batch_size = batch_size
         self._dataset = dataset.map(self._tokenize_function, batched=True)
         self._labels = self._dataset['label']
         self._metric = load("accuracy")
+        self._epochs = epochs
 
     def _tokenize_function(self, example):
         tokenizer = AutoTokenizer.from_pretrained(self._model)
@@ -45,7 +46,7 @@ class EsmTrainer():
             output_dir=f"./results_fold_{fold}",
             eval_strategy="epoch", save_strategy="epoch", learning_rate=2e-5,
             per_device_train_batch_size=self._batch_size, per_device_eval_batch_size=self._batch_size,
-            num_train_epochs=3, weight_decay=0.01,
+            num_train_epochs=self._epochs, weight_decay=0.01,
             load_best_model_at_end=True, metric_for_best_model="accuracy", push_to_hub=False,
         )
         trainer = Trainer(model=model, args=training_args,
@@ -54,13 +55,29 @@ class EsmTrainer():
         fold_metrics = trainer.evaluate()
         results.append(fold_metrics)
 
-    def train(self):
-        results = []
-        for fold, (train_idx, val_idx) in enumerate(self._skf.split(np.zeros(len(self._labels)), self._labels)):
-            self._run_fold(train_idx, val_idx, fold,  results=results)
-        avg_accuracy = np.mean([res['eval_accuracy'] for res in results])
-        print(f"Average Cross-Validation Accuracy: {avg_accuracy}")
+    def _run(self, ds):
+        model = AutoModelForSequenceClassification.from_pretrained(self._model, num_labels=2)
+        training_args = TrainingArguments(
+            output_dir=f"./results",
+            eval_strategy="no",
+            save_strategy="epoch", learning_rate=2e-5,
+            per_device_train_batch_size=self._batch_size, per_device_eval_batch_size=self._batch_size,
+            num_train_epochs=self._epochs, weight_decay=0.01,
+            load_best_model_at_end=True, metric_for_best_model="accuracy", push_to_hub=False,
+        )
+        trainer = Trainer(model=model, args=training_args,
+                          train_dataset=ds, compute_metrics=self._compute_metrics, )
+        trainer.train()
 
+    def train(self):
+        if self._skf is None:
+            self._run(self._dataset)
+        else:
+            results = []
+            for fold, (train_idx, val_idx) in enumerate(self._skf.split(np.zeros(len(self._labels)), self._labels)):
+                self._run_fold(train_idx, val_idx, fold,  results=results)
+            avg_accuracy = np.mean([res['eval_accuracy'] for res in results])
+            print(f"Average Cross-Validation Accuracy: {avg_accuracy}")
 
 
 
@@ -86,5 +103,6 @@ f.add(aa_seq_2)
 
 
 skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-esmt=EsmTrainer(model="facebook/esm2_t30_150M_UR50D", dataset=f.export_to_dataset(), skf=skf, batch_size=8)
+esmt=EsmTrainer(model="facebook/esm2_t30_150M_UR50D", dataset=f.export_to_dataset(), skf=skf,
+                epochs=15, batch_size=8)
 esmt.train()
