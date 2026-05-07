@@ -39,6 +39,7 @@ class EsmTrainer():
         return self._metric.compute(predictions=predictions, references=labels)
 
     def _run_fold(self, train_idx, val_idx, fold, results):
+        print('Training fold ' + str(fold))
         train_fold = self._dataset.select(train_idx)
         val_fold = self._dataset.select(val_idx)
         model = AutoModelForSequenceClassification.from_pretrained(self._model, num_labels=2)
@@ -56,11 +57,12 @@ class EsmTrainer():
         results.append(fold_metrics)
 
     def _run(self, ds):
+        print('Training (no validation)')
         model = AutoModelForSequenceClassification.from_pretrained(self._model, num_labels=2)
         training_args = TrainingArguments(
             output_dir=f"./results",
             eval_strategy="no",
-            save_strategy="epoch", learning_rate=2e-5,
+            save_strategy="no", learning_rate=2e-5,
             per_device_train_batch_size=self._batch_size, per_device_eval_batch_size=self._batch_size,
             num_train_epochs=self._epochs, weight_decay=0.01,
             load_best_model_at_end=False, metric_for_best_model="accuracy", push_to_hub=False,
@@ -68,6 +70,7 @@ class EsmTrainer():
         trainer = Trainer(model=model, args=training_args,
                           train_dataset=ds, compute_metrics=self._compute_metrics, )
         trainer.train()
+        trainer.save_model("./results/final_model")
 
     def train(self):
         if self._skf is None:
