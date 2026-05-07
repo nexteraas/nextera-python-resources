@@ -63,7 +63,7 @@ class EsmTrainer():
             save_strategy="epoch", learning_rate=2e-5,
             per_device_train_batch_size=self._batch_size, per_device_eval_batch_size=self._batch_size,
             num_train_epochs=self._epochs, weight_decay=0.01,
-            load_best_model_at_end=True, metric_for_best_model="accuracy", push_to_hub=False,
+            load_best_model_at_end=False, metric_for_best_model="accuracy", push_to_hub=False,
         )
         trainer = Trainer(model=model, args=training_args,
                           train_dataset=ds, compute_metrics=self._compute_metrics, )
