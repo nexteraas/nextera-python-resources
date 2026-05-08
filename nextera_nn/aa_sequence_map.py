@@ -97,3 +97,58 @@ class AaSequenceMap(object):
 
     def _contains_any_char(self, target_string, char_list):
         return any(char in target_string for char in char_list)
+
+    def write(self, fn):
+        with open(fn, "w") as f:
+            for k, v in self._sequences.items():
+                f.write(">" + k + "\n")
+                f.write(v + "\n")
+
+
+
+
+class CuratingAaSequenceMap(AaSequenceMap):
+    def curate_paired_sequences_by_truncation(self, first_chain_vtrim, first_chain_rtrim,
+                                              second_chain_vtrim, second_chain_rtrim, sep=':'):
+        new_seqs={}
+        for k, v in self._sequences.items():
+            new_s = self._curate_paired_sequence_by_truncation(v, first_chain_vtrim, first_chain_rtrim,
+                                                               second_chain_vtrim, second_chain_rtrim, sep)
+            new_seqs[k] = new_s
+        self._sequences = new_seqs
+
+    def _curate_paired_sequence_by_truncation(self, seq, first_chain_vtrim, first_chain_rtrim,
+                                              second_chain_vtrim, second_chain_rtrim, sep):
+        parts = seq.split(sep)
+        s1=parts[0]
+        s2=parts[1]
+        s1 = s1[first_chain_vtrim:len(s1)-first_chain_rtrim]
+        s2 = s2[second_chain_vtrim:len(s2) - second_chain_rtrim]
+        out = s1+sep+s2
+        return out
+
+# Examples from EXPLORER library vs Gørils sanger-sequences PRAME-specific seqs.
+# >r0
+# DIQLTQSPSTLSASVGDRVTITCRASQGLSNWLAWYQQKPGEAPKLLIYAASTLQSGVPSRFSGSGSGTEFTLTISSLQPDDFATYYCLQYNSRSRALTFGGGTKVEIK:QVQLVQSGAEVKKPGASVKVSCKASGYTFTSYAMHWVRQAPGQRLEWMGWINAGNGNTKYSQKFQGRVTITRDTSASTVYIELSSLTSEDTAVYYCARAQQNTSWYDWFDPWGQGTLVTVSS
+# >prame
+# DIQVTQSPSSLSASVGDRVTITCQASQDISNYLNWYQQKPGKAPKLLIYDASNLETGVPSRFSGSGSGTDFTFTISSLQPEDIATYYCLQHNSYLPTFGGGTKVEIK:    QLVQSGAEVKKPGSSVKVSCKASPEAWSTFWISWVRQAPGQGLEWMGGIIPIFGTANYAQKFQGRVTITADESTSTAYMELSSLRSEDTAVYYCARDGYNYGQFDYWGQGTLVTVSS
+#
+# >9de50f9d-5a98-469b-be32-312576e3d1e9
+# AIQMTQSPSSVSASVGDRVTITCQASQDISNYLNWYQQKPGKAPKLLIYDASNLETGVPSRFSGSGSGTDFTFTISSLQPEDIATYYCQQYDILLTFGGGTKVEIK:  QV QLVQSGSELKKPGASVRVSCKASGYSFTSYSMNWVRQAPGQGLEWMGWINTNTGNPTYAQGFTGRFVFSLDTSVSTAYLQISSLKPEDTAVYYCARGDTNSWSKENYWGQGTLVTVSS
+# >A1-A11-ColE1_fwd2_A21_1_1-297
+# DIQVTQSPSSLSASVGDRVTITCQASQDISNYLNWYQQKPGKAPKLLIYDASNLETGVPSRFSGSGSGTDFTFTISSLQPEDIATYYCLQHNSYLPTFGGGTKVEIK:    QLVQSGAEVKKPGSSVKVSCKASGGTFSSYAISWVRQAPGQGLEWMGGIIPIFGTANYAQKFQGRVTITADESTSTAYMELSSLRSEDTAVYYCARTIGHDLPDAFDIWGQGTMVTVSS
+# Ergo:
+# ->chop 4 first_chain_1 on both
+# ->chop 2 first_chain2 on r0
+#
+# fn="C:/Nextera/div/ab_roberta/EXPLORER/r0_n1000.txt"
+# seqs=CuratingAaSequenceMap(fn)
+# seqs.curate_paired_sequences_by_truncation(4,0,0,0)
+# seqs.write("C:/Nextera/div/ab_roberta/EXPLORER/curated/r0_n1000.txt")
+#
+# fn="C:/Nextera/div/ab_roberta/EXPLORER/r0.txt"
+# seqs=CuratingAaSequenceMap(fn)
+# seqs.curate_paired_sequences_by_truncation(4,0,2,0)
+# seqs.write("C:/Nextera/div/ab_roberta/EXPLORER/curated/r0.txt")
+
+

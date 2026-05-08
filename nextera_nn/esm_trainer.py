@@ -90,8 +90,8 @@ def prepare_input(fn, tag):
     out = out.get_unique_sequences()
     return out
 
-fn1 = "C:/Nextera/div/ab_roberta/mage_vs_prame/chain2_chain1/mage_hs_2.txt"
-fn2 = "C:/Nextera/div/ab_roberta/mage_vs_prame/chain2_chain1/prame_hs_2.txt"
+fn1 = "C:/Nextera/div/ab_roberta/EXPLORER/curated/r0.txt"
+fn2 = "C:/Nextera/div/ab_roberta/EXPLORER/curated/prame_specific_seqs.txt"
 
 aa_seq_1 = prepare_input(fn1, 0)
 aa_seq_2 = prepare_input(fn2, 1)
