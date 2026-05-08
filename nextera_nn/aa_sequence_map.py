@@ -124,7 +124,7 @@ class CuratingAaSequenceMap(AaSequenceMap):
         s2=parts[1]
         s1 = s1[first_chain_vtrim:len(s1)-first_chain_rtrim]
         s2 = s2[second_chain_vtrim:len(s2) - second_chain_rtrim]
-        out = s1+sep+s2
+        out = s1+s2
         return out
 
 # Examples from EXPLORER library vs Gørils sanger-sequences PRAME-specific seqs.
@@ -138,12 +138,12 @@ class CuratingAaSequenceMap(AaSequenceMap):
 # >A1-A11-ColE1_fwd2_A21_1_1-297
 # DIQVTQSPSSLSASVGDRVTITCQASQDISNYLNWYQQKPGKAPKLLIYDASNLETGVPSRFSGSGSGTDFTFTISSLQPEDIATYYCLQHNSYLPTFGGGTKVEIK:    QLVQSGAEVKKPGSSVKVSCKASGGTFSSYAISWVRQAPGQGLEWMGGIIPIFGTANYAQKFQGRVTITADESTSTAYMELSSLRSEDTAVYYCARTIGHDLPDAFDIWGQGTMVTVSS
 # Ergo:
-# ->chop 4 first_chain_1 on both
-# ->chop 2 first_chain2 on r0
-#
+# ->chop 4 first_chain_vtrim on both
+# ->chop 2 second_chain_vtrim on r0
+
 # fn="C:/Nextera/div/ab_roberta/EXPLORER/r0_n1000.txt"
 # seqs=CuratingAaSequenceMap(fn)
-# seqs.curate_paired_sequences_by_truncation(4,0,0,0)
+# seqs.curate_paired_sequences_by_truncation(4,0,2,0)
 # seqs.write("C:/Nextera/div/ab_roberta/EXPLORER/curated/r0_n1000.txt")
 #
 # fn="C:/Nextera/div/ab_roberta/EXPLORER/r0.txt"
