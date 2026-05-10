@@ -15,7 +15,7 @@ class EsmInterference():
         model = AutoModelForSequenceClassification.from_pretrained(self._model_path, use_safetensors=True)
         tokenizer = AutoTokenizer.from_pretrained(self._model_name)
         pipe = pipeline(task="text-classification", model=model, tokenizer=tokenizer, device=device)
-        out = pipe(self._seqs, batch_size)
+        out = pipe(self._seqs, batch_size=batch_size)
         return out
 
 class Parser():
