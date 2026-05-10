@@ -2,6 +2,7 @@ from transformers import AutoModel, AutoTokenizer, AutoModelForSequenceClassific
 from transformers import pipeline
 from aa_sequence_map import AaSequenceMap
 from  sanity_checker import SequenceSanityChecker
+import pickle
 
 
 class EsmInterference():
@@ -28,15 +29,16 @@ class Parser():
     def filter(self, class_txt, threshold=0.5, above=True):
         i = 0
         out=[]
-        for r in self.data:
-            txt= r['class']
-            val = r['value']
-            if above:
-                if val >= threshold:
-                    out.append(r)
-            else:
-                if val <= threshold:
-                    out.append(r)
+        for r in self._data:
+            txt= r['label']
+            if class_txt == txt:
+                val = r['score']
+                if above:
+                    if val >= threshold:
+                        out.append(r)
+                else:
+                    if val <= threshold:
+                        out.append(r)
         return out
 
     def to_string(self):
@@ -62,10 +64,13 @@ model_name = "facebook/esm2_t30_150M_UR50D"
 inf=EsmInterference(model_path, model_name, seqs)
 result = inf.run_inference()
 
+with open('r0_result.pkl', 'wb') as f:  # 'wb' means write-binary
+    pickle.dump(result, f)
+
 p=Parser(result)
 p.to_string()
 
-x=p.filter('class_0', 0.9, True)
+x=p.filter('LABEL_0', 0.9, True)
 p=Parser(x)
 
 print(p.to_string())
