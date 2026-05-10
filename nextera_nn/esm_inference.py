@@ -11,11 +11,11 @@ class EsmInterference():
         self._model_name = model_name
         self._seqs = seqs
 
-    def run_inference(self):
+    def run_inference(self, batch_size=16, device=0):
         model = AutoModelForSequenceClassification.from_pretrained(self._model_path, use_safetensors=True)
         tokenizer = AutoTokenizer.from_pretrained(self._model_name)
-        pipe = pipeline(task="text-classification", model=model, tokenizer=tokenizer)
-        out = pipe(self._seqs)
+        pipe = pipeline(task="text-classification", model=model, tokenizer=tokenizer, device=device)
+        out = pipe(self._seqs, batch_size)
         return out
 
 class Parser():
@@ -27,17 +27,20 @@ class Parser():
             print(r)
 
     def filter(self, class_txt, threshold=0.5, above=True):
-        i = 0
+        i = -1
         out=[]
         for r in self._data:
+            i+=1
             txt= r['label']
             if class_txt == txt:
                 val = r['score']
                 if above:
                     if val >= threshold:
+                        r['index'] = i
                         out.append(r)
                 else:
                     if val <= threshold:
+                        r['index'] = i
                         out.append(r)
         return out
 
