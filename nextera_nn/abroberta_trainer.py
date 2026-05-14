@@ -7,6 +7,7 @@ from features import Features
 from sklearn.model_selection import StratifiedKFold
 import numpy as np
 from sklearn.metrics import classification_report
+from sklearn.metrics import precision_recall_fscore_support
 
 
 class AbRobertaTrainer():
@@ -35,8 +36,23 @@ class AbRobertaTrainer():
     def _compute_metrics(self, eval_pred):
         predictions, labels = eval_pred
         predictions = np.argmax(predictions, axis=1)
-        print(classification_report(labels, predictions))
+        #print(classification_report(labels, predictions))
         return self._metric.compute(predictions=predictions, references=labels)
+
+    def _compute_final_fold_metrics(self, eval_pred):
+        logits, labels = eval_pred
+        predictions = np.argmax(logits, axis=-1)
+
+        # Calculate precision, recall, and f1 at the end of the entire fold
+        precision, recall, f1, _ = precision_recall_fscore_support(
+            labels, predictions, average="macro"
+        )
+
+        return {
+            "final_fold_precision": precision,
+            "final_fold_recall": recall,
+            "final_fold_f1": f1
+        }
 
     def _run_fold(self, train_idx, val_idx, fold, results):
         print('Training fold ' + str(fold))
@@ -53,7 +69,7 @@ class AbRobertaTrainer():
         trainer = Trainer(model=model, args=training_args,
                           train_dataset=train_fold, eval_dataset=val_fold, compute_metrics=self._compute_metrics, )
         trainer.train()
-        fold_metrics = trainer.evaluate()
+        fold_metrics = trainer.evaluate(compute_metrics=self._compute_final_fold_metrics)
         results.append(fold_metrics)
 
     def _run(self, ds):
@@ -91,7 +107,7 @@ def prepare_input(fn, tag):
     out = out.get_unique_sequences()
     return out
 
-fn1 = "drive/MyDrive/explorer/heavy/r0_curated.txt"
+fn1 = "drive/MyDrive/explorer/heavy/r0_n1000_curated.txt"
 fn2 = "drive/MyDrive/explorer/heavy/prame.txt"
 
 aa_seq_1 = prepare_input(fn1, 0)
