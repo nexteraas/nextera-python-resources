@@ -1,4 +1,4 @@
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, EarlyStoppingCallback
 from transformers import AutoModelForSequenceClassification, TrainingArguments, Trainer, RobertaForSequenceClassification
 from evaluate import load
 from aa_sequence_map import AaSequenceMap
@@ -11,7 +11,7 @@ from sklearn.metrics import precision_recall_fscore_support
 
 
 class AbRobertaTrainer():
-    def __init__(self, model, dataset, skf, epochs=3, batch_size=8):
+    def __init__(self, model, dataset, skf, epochs=3, batch_size=8, metric_for_best_model="accuracy" ):
         self._skf = skf
         self._model = model
         self._batch_size = batch_size
@@ -19,6 +19,11 @@ class AbRobertaTrainer():
         self._labels = self._dataset['label']
         self._metric = load("accuracy")
         self._epochs = epochs
+        if metric_for_best_model!='accuracy' and metric_for_best_model!='eval_loss':
+            raise ValueError("Only 'accuracy' or 'eval_loss' are supported.")
+        self._metric_for_best_model = metric_for_best_model
+        self._cache_eval_pred = None
+
 
     def _tokenize_function(self, example):
         tokenizer = AutoTokenizer.from_pretrained(self._model)
@@ -34,43 +39,53 @@ class AbRobertaTrainer():
         )
 
     def _compute_metrics(self, eval_pred):
+        self._cache_eval_pred = eval_pred
         predictions, labels = eval_pred
         predictions = np.argmax(predictions, axis=1)
         #print(classification_report(labels, predictions))
         return self._metric.compute(predictions=predictions, references=labels)
 
-    def _compute_final_fold_metrics(self, eval_pred):
-        logits, labels = eval_pred
-        predictions = np.argmax(logits, axis=-1)
+    def _compute_final_fold_metrics(self):
+        predictions, labels = self._cache_eval_pred
+        predictions = np.argmax(predictions, axis=1)
+        print(classification_report(labels, predictions))
 
-        # Calculate precision, recall, and f1 at the end of the entire fold
-        precision, recall, f1, _ = precision_recall_fscore_support(
-            labels, predictions, average="macro"
-        )
-
-        return {
-            "final_fold_precision": precision,
-            "final_fold_recall": recall,
-            "final_fold_f1": f1
-        }
+        # logits, labels = eval_pred
+        # predictions = np.argmax(logits, axis=-1)
+        # precision, recall, f1, _ = precision_recall_fscore_support(
+        #     labels, predictions, average="macro"
+        # )
+        # return {
+        #     "final_fold_precision": precision,
+        #     "final_fold_recall": recall,
+        #     "final_fold_f1": f1
+        # }
 
     def _run_fold(self, train_idx, val_idx, fold, results):
         print('Training fold ' + str(fold))
         train_fold = self._dataset.select(train_idx)
         val_fold = self._dataset.select(val_idx)
         model = AutoModelForSequenceClassification.from_pretrained(self._model, num_labels=2)
+        if self._metric_for_best_model=='accuracy':
+            gis=True
+        else:
+            gis=False
         training_args = TrainingArguments(
             output_dir=f"./results_fold_{fold}",
             eval_strategy="epoch", save_strategy="epoch", learning_rate=2e-5,
             per_device_train_batch_size=self._batch_size, per_device_eval_batch_size=self._batch_size,
             num_train_epochs=self._epochs, weight_decay=0.01,
-            load_best_model_at_end=True, metric_for_best_model="accuracy", push_to_hub=False,
+            load_best_model_at_end=True, metric_for_best_model=self._metric_for_best_model,
+            push_to_hub=False,greater_is_better=gis,
         )
-        trainer = Trainer(model=model, args=training_args,
-                          train_dataset=train_fold, eval_dataset=val_fold, compute_metrics=self._compute_metrics, )
+        #metric_for_best_model="accuracy", greater_is_better=True
+        trainer = Trainer(model=model, args=training_args, train_dataset=train_fold,
+                          eval_dataset=val_fold, compute_metrics=self._compute_metrics,
+                          callbacks=[EarlyStoppingCallback(early_stopping_patience=3)])
         trainer.train()
-        fold_metrics = trainer.evaluate(compute_metrics=self._compute_final_fold_metrics)
+        fold_metrics = trainer.evaluate()
         results.append(fold_metrics)
+        self._compute_final_fold_metrics()
 
     def _run(self, ds):
         print('Training (no validation)')
@@ -122,7 +137,7 @@ f.add(aa_seq_1)
 f.add(aa_seq_2)
 
 
-skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+skf = StratifiedKFold(n_splits=3, shuffle=True, random_state=42)
 abrt=AbRobertaTrainer(model="mogam-ai/Ab-RoBERTa", dataset=f.export_to_dataset(), skf=skf,
-                epochs=15, batch_size=8)
+                epochs=10, batch_size=8)
 abrt.train()
