@@ -18,34 +18,6 @@ class EsmInterference():
         out = pipe(self._seqs, batch_size=batch_size)
         return out
 
-class Parser():
-    def __init__(self, data):
-        self._data = data
-
-    def print_head(self, n=10):
-        for r in self.data:
-            print(r)
-
-    def filter(self, class_txt, threshold=0.5, above=True):
-        i = -1
-        out=[]
-        for r in self._data:
-            i+=1
-            txt= r['label']
-            if class_txt == txt:
-                val = r['score']
-                if above:
-                    if val >= threshold:
-                        r['index'] = i
-                        out.append(r)
-                else:
-                    if val <= threshold:
-                        r['index'] = i
-                        out.append(r)
-        return out
-
-    def to_string(self):
-        print(self._data)
 
 
 def prepare_input(fn, tag):

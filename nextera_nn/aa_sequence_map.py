@@ -106,8 +106,18 @@ class AaSequenceMap(object):
 
 
 
-
 class CuratingAaSequenceMap(AaSequenceMap):
+    def curate_sequences_by_truncation(self, vtrim, rtrim):
+        new_seqs = {}
+        for k, v in self._sequences.items():
+            new_s = self._curate_sequence_by_truncation(v, vtrim, rtrim)
+            new_seqs[k] = new_s
+        self._sequences = new_seqs
+
+    def _curate_sequence_by_truncation(self, seq, vtrim, rtrim):
+        out = seq[vtrim:len(seq) - rtrim]
+        return out
+
     def curate_paired_sequences_by_truncation(self, first_chain_vtrim, first_chain_rtrim,
                                               second_chain_vtrim, second_chain_rtrim, sep=':'):
         new_seqs={}
@@ -141,10 +151,10 @@ class CuratingAaSequenceMap(AaSequenceMap):
 # ->chop 4 first_chain_vtrim on both
 # ->chop 2 second_chain_vtrim on r0
 
-# fn="C:/Nextera/div/ab_roberta/EXPLORER/r0_n1000.txt"
+# fn="C:/Nextera/div/ab_roberta/EXPLORER/heavy/r0.txt"
 # seqs=CuratingAaSequenceMap(fn)
-# seqs.curate_paired_sequences_by_truncation(4,0,2,0)
-# seqs.write("C:/Nextera/div/ab_roberta/EXPLORER/curated/r0_n1000.txt")
+# seqs.curate_sequences_by_truncation(2,0)
+# seqs.write("C:/Nextera/div/ab_roberta/EXPLORER/heavy/r0_curated.txt")
 #
 # fn="C:/Nextera/div/ab_roberta/EXPLORER/r0.txt"
 # seqs=CuratingAaSequenceMap(fn)
