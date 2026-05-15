@@ -91,6 +91,10 @@ class AbRobertaTrainer():
         print('Training (no validation)')
         #model = AutoModelForSequenceClassification.from_pretrained(self._model, num_labels=2)
         model = RobertaForSequenceClassification.from_pretrained(self._model, num_labels=2)
+        if self._metric_for_best_model=='accuracy':
+            gis=True
+        else:
+            gis=False
         training_args = TrainingArguments(
             output_dir=f"./results",
             eval_strategy="no",
