@@ -1,4 +1,4 @@
-from transformers import AutoModel, AutoTokenizer, AutoModelForSequenceClassification, RobertaForSequenceClassification
+from transformers import AutoTokenizer, RobertaForSequenceClassification
 from transformers import pipeline
 from aa_sequence_map import AaSequenceMap
 from  sanity_checker import SequenceSanityChecker
@@ -26,7 +26,7 @@ def prepare_input(fn, tag):
     out = out.get_unique_sequences()
     return out
 
-fn = "C:/Nextera/div/ab_roberta/EXPLORER/curated/r0.txt"
+fn = "C:/Nextera/div/ab_roberta/EXPLORER/curated/r0_n1000.txt"
 aa_seq = prepare_input(fn, 0)
 checker = SequenceSanityChecker([aa_seq])
 rep=checker.create_std_report()
@@ -35,12 +35,22 @@ print(rep)
 seqs=aa_seq.get_sequence_list()
 
 model_path = "drive/MyDrive/explorer/final_model"
-model_name = "facebook/esm2_t30_150M_UR50D"
-inf = AbRobertaInterference(model_path, model_name, seqs)
-result = inf.run_inference()
+model_name = "mogam-ai/Ab-RoBERTa"
 
-with open('r0_result.pkl', 'wb') as f:  # 'wb' means write-binary
-    pickle.dump(result, f)
+seqsbatch=[]
+for i in range(len(seqs)):
+    seqsbatch.append (seqs[i])
+    if len(seqsbatch)==10:
+        inf = AbRobertaInterference(model_path, model_name, seqsbatch)
+        result = inf.run_inference()
+        with open('r0_result.pkl' + str(i), 'wb') as f:  # 'wb' means write-binary
+            pickle.dump(result, f)
+        seqsbatch = []
+if len(seqsbatch)!=0:
+    inf = AbRobertaInterference(model_path, model_name, seqsbatch)
+    result = inf.run_inference()
+    with open('r0_result.pkl' + str(i+1), 'wb') as f:  # 'wb' means write-binary
+        pickle.dump(result, f)
 
 # p=Parser(result)
 # p.to_string()
