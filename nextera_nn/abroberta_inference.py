@@ -1,3 +1,5 @@
+import os.path
+
 from transformers import AutoTokenizer, RobertaForSequenceClassification
 from transformers import pipeline
 from aa_sequence_map import AaSequenceMap
@@ -19,7 +21,33 @@ class AbRobertaInterference():
         out = pipe(self._seqs, batch_size=batch_size)
         return out
 
+class BatchedAbRobertaInterference():
+    def __init__(self, model_path, model_name, seqs, batch_size):
+        self._model_path = model_path
+        self._model_name = model_name
+        self._seqs = seqs
+        self._batch_size = batch_size
 
+    def run_batched_interference(self, out_path):
+        seqsbatch = []
+        for i in range(len(seqs)):
+            seqsbatch.append(seqs[i])
+            if len(seqsbatch) == self._batch_size:
+                print('processing ' + str(i))
+                inf = AbRobertaInterference(self._model_path, self._model_name, self._seqsbatch)
+                result = inf.run_inference()
+                out_fn=os.path.join(out_path, 'result.pkl' + str(i))
+                with open(out_fn, 'wb') as f:  # 'wb' means write-binary
+                    pickle.dump(result, f)
+                seqsbatch = []
+        if len(seqsbatch) != 0:
+            print('processing final batch...')
+            inf = AbRobertaInterference(model_path, model_name, seqsbatch)
+            result = inf.run_inference()
+            out_fn = os.path.join(out_path, 'result.pkl' + str(len(seqsbatch) + i))
+            with open(out_fn, 'wb') as f:  # 'wb' means write-binary
+                pickle.dump(result, f)
+        print('Done!')
 
 def prepare_input(fn, tag):
     out = AaSequenceMap(fn, tag=tag)
@@ -27,7 +55,7 @@ def prepare_input(fn, tag):
     out = out.get_unique_sequences()
     return out
 
-fn = "C:/Nextera/div/ab_roberta/EXPLORER/curated/r0_n1000.txt"
+fn = "drive/MyDrive/explorer/heavy/r0.txt"
 aa_seq = prepare_input(fn, 0)
 checker = SequenceSanityChecker([aa_seq])
 rep=checker.create_std_report()
@@ -38,21 +66,26 @@ seqs=aa_seq.get_sequence_list()
 model_path = "drive/MyDrive/explorer/final_model"
 model_name = "mogam-ai/Ab-RoBERTa"
 
-seqsbatch=[]
-for i in range(len(seqs)):
-    seqsbatch.append (seqs[i])
-    if len(seqsbatch)==10000:
-        inf = AbRobertaInterference(model_path, model_name, seqsbatch)
-        result = inf.run_inference()
-        with open('r0_result.pkl' + str(i), 'wb') as f:  # 'wb' means write-binary
-            pickle.dump(result, f)
-        seqsbatch = []
-if len(seqsbatch)!=0:
-    inf = AbRobertaInterference(model_path, model_name, seqsbatch)
-    result = inf.run_inference()
-    with open('r0_result.pkl' + str(i+1), 'wb') as f:  # 'wb' means write-binary
-        pickle.dump(result, f)
+inf=BatchedAbRobertaInterference(model_path, model_name, seqs, 10000)
+inf.run_batched_interference('./')
 
+# seqsbatch=[]
+# for i in range(len(seqs)):
+#     seqsbatch.append (seqs[i])
+#     if len(seqsbatch)==10000:
+#         print('processing ' + str(i))
+#         inf = AbRobertaInterference(model_path, model_name, seqsbatch)
+#         result = inf.run_inference()
+#         with open('r0_result.pkl' + str(i), 'wb') as f:  # 'wb' means write-binary
+#             pickle.dump(result, f)
+#         seqsbatch = []
+# if len(seqsbatch)!=0:
+#     print('processing final batch...')
+#     inf = AbRobertaInterference(model_path, model_name, seqsbatch)
+#     result = inf.run_inference()
+#     with open('r0_result.pkl' + str(i+1), 'wb') as f:  # 'wb' means write-binary
+#         pickle.dump(result, f)
+# print('Done!')
 # p=Parser(result)
 # p.to_string()
 #
