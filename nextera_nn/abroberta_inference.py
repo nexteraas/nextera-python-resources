@@ -14,7 +14,8 @@ class AbRobertaInterference():
     def run_inference(self, batch_size=16, device=0):
         model = RobertaForSequenceClassification.from_pretrained(self._model_path, use_safetensors=True)
         tokenizer = AutoTokenizer.from_pretrained(self._model_name)
-        pipe = pipeline(task="text-classification", model=model, tokenizer=tokenizer, device=device)
+        pipe = pipeline(task="text-classification", model=model, tokenizer=tokenizer, device=device,
+                        max_length=150, truncation=True)
         out = pipe(self._seqs, batch_size=batch_size)
         return out
 
@@ -40,7 +41,7 @@ model_name = "mogam-ai/Ab-RoBERTa"
 seqsbatch=[]
 for i in range(len(seqs)):
     seqsbatch.append (seqs[i])
-    if len(seqsbatch)==10:
+    if len(seqsbatch)==10000:
         inf = AbRobertaInterference(model_path, model_name, seqsbatch)
         result = inf.run_inference()
         with open('r0_result.pkl' + str(i), 'wb') as f:  # 'wb' means write-binary
