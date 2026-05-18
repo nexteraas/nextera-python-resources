@@ -1,5 +1,4 @@
 import os.path
-
 from transformers import AutoTokenizer, RobertaForSequenceClassification
 from transformers import pipeline
 from aa_sequence_map import AaSequenceMap
@@ -34,9 +33,9 @@ class BatchedAbRobertaInterference():
             seqsbatch.append(seqs[i])
             if len(seqsbatch) == self._batch_size:
                 print('processing ' + str(i))
-                inf = AbRobertaInterference(self._model_path, self._model_name, self._seqsbatch)
+                inf = AbRobertaInterference(self._model_path, self._model_name, seqsbatch)
                 result = inf.run_inference()
-                out_fn=os.path.join(out_path, 'result.pkl' + str(i))
+                out_fn=os.path.join(out_path, 'result_'  + str(i) + '.pkl')
                 with open(out_fn, 'wb') as f:  # 'wb' means write-binary
                     pickle.dump(result, f)
                 seqsbatch = []
@@ -44,10 +43,11 @@ class BatchedAbRobertaInterference():
             print('processing final batch...')
             inf = AbRobertaInterference(model_path, model_name, seqsbatch)
             result = inf.run_inference()
-            out_fn = os.path.join(out_path, 'result.pkl' + str(len(seqsbatch) + i))
+            out_fn=os.path.join(out_path, 'result_'  + str(len(seqsbatch) +  i) + '.pkl')
             with open(out_fn, 'wb') as f:  # 'wb' means write-binary
                 pickle.dump(result, f)
         print('Done!')
+
 
 def prepare_input(fn, tag):
     out = AaSequenceMap(fn, tag=tag)
@@ -55,7 +55,8 @@ def prepare_input(fn, tag):
     out = out.get_unique_sequences()
     return out
 
-fn = "drive/MyDrive/explorer/heavy/r0.txt"
+fn = "drive/MyDrive/explorer/heavy/r0_curated.txt"
+fn = "C:/Nextera/div/ab_roberta/EXPLORER/heavy/r0_curated.txt"
 aa_seq = prepare_input(fn, 0)
 checker = SequenceSanityChecker([aa_seq])
 rep=checker.create_std_report()
@@ -63,7 +64,7 @@ print(rep)
 
 seqs=aa_seq.get_sequence_list()
 
-model_path = "drive/MyDrive/explorer/final_model"
+model_path = "drive/MyDrive/explorer/heavy/final_model"
 model_name = "mogam-ai/Ab-RoBERTa"
 
 inf=BatchedAbRobertaInterference(model_path, model_name, seqs, 10000)
