@@ -1,5 +1,6 @@
 import pickle
 from aa_sequence_map import AaSequenceMap
+import matplotlib.pyplot as plt
 
 
 class InferenceParser():
@@ -39,6 +40,12 @@ class InferenceParser():
                         out.append(r)
         return out
 
+    def get_sorted_list(self, inc=True):
+        out = sorted(self._data, key=lambda item: item['score'])
+        if not inc:
+            out.reverse()
+        return out
+
     def __str__(self):
         out = str(len(self._data)) + ' items'
         return out
@@ -62,18 +69,40 @@ class InferenceParser():
             out = InferenceParser(data)
         return out
 
+class Plotter():
+    def __init__(self):
+        pass
 
+    def plot(self, parsers, colors=None, labels=None, inc=False):
+        c_index = 0
+        l_index = 0
+        for parser in parsers:
+            if colors is None:
+                color='blue'
+            else:
+                color=colors[c_index]
+                c_index+=1
+            if labels is None:
+                label=None
+            else:
+                label=labels[l_index]
+                l_index+=1
+            self._plot(parser, color, label, inc)
+        plt.legend(loc='upper right')
+        plt.show()
 
+    def _plot(self,parser, color, label, inc):
+        y = []
+        x = []
+        lst = parser.get_sorted_list(inc)
+        i = 0
+        for ifr in lst:
+            x.append(i)
+            i += 1
+            y.append(ifr['score'])
+        i = 0
+        if label is None:
+            plt.scatter(x, y, c=color, s=1)
+        else:
+            plt.scatter(x, y, c=color, s=1, label=label)
 
-fn="C:/Nextera/div/ab_roberta/EXPLORER/heavy/result_final.pkl"
-p=InferenceParser.instantiate(fn)
-i_dict=p.filter(class_txt='LABEL_1', threshold=0.99, above=True)
-p=InferenceParser(i_dict)
-print(str(len(p)))
-fn_seqs="C:/Nextera/div/ab_roberta/EXPLORER/heavy/r0.txt"
-seqs=AaSequenceMap(fn_seqs)
-#seqs_list=seqs.get_sequence_list()
-extracted_seqs=InferenceParser.extract_sequences(i_dict, seqs)
-aa_map=AaSequenceMap(fn=None, sequences=extracted_seqs)
-aa_map.write("C:/Nextera/div/ab_roberta/EXPLORER/heavy/extracted_r0_seqs.txt")
-print('d')
