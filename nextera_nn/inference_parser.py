@@ -1,5 +1,4 @@
 import pickle
-from aa_sequence_map import AaSequenceMap
 import matplotlib.pyplot as plt
 
 
@@ -70,8 +69,11 @@ class InferenceParser():
         return out
 
 class Plotter():
-    def __init__(self):
-        pass
+    def __init__(self, x_axis_unit="clones", y_axis_unit="Probability", property='score', legend_loc='upper right'):
+        self._x_axis_unit = x_axis_unit
+        self._y_axis_unit = y_axis_unit
+        self._property = property
+        self._legend_loc = legend_loc
 
     def plot(self, parsers, colors=None, labels=None, inc=False):
         c_index = 0
@@ -88,7 +90,10 @@ class Plotter():
                 label=labels[l_index]
                 l_index+=1
             self._plot(parser, color, label, inc)
-        plt.legend(loc='upper right')
+        if self._legend_loc is not None:
+            plt.legend(loc=self._legend_loc)
+        plt.xlabel(self._x_axis_unit)
+        plt.ylabel(self._y_axis_unit)
         plt.show()
 
     def _plot(self,parser, color, label, inc):
@@ -99,7 +104,7 @@ class Plotter():
         for ifr in lst:
             x.append(i)
             i += 1
-            y.append(ifr['score'])
+            y.append(ifr[self._property])
         i = 0
         if label is None:
             plt.scatter(x, y, c=color, s=1)

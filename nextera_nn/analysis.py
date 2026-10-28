@@ -11,13 +11,14 @@ def prepare_input(fn, tag):
     out = out.get_unique_sequences()
     return out
 
+
 fn_seqs="C:/Nextera/div/ab_roberta/EXPLORER/heavy/r0_curated.txt"
 seqs=prepare_input(fn_seqs,0)
 print(len(seqs.get_sequence_list()))
 
 fn="C:/Nextera/div/ab_roberta/EXPLORER/heavy/result_final.pkl"
 p=InferenceParser.instantiate(fn)
-i_dict=p.filter(class_txt='LABEL_1', threshold=0.50, above=True)
+i_dict=p.filter(class_txt='LABEL_1', threshold=0.95, above=True)
 p1=InferenceParser(i_dict)
 i_dict=p.filter(class_txt='LABEL_0', threshold=0.90, above=True)
 p2=InferenceParser(i_dict)
@@ -26,7 +27,7 @@ top_2=top_2[0:len(p1)]
 p2=InferenceParser(top_2)
 print(str(len(p2)))
 
-plotter=Plotter()
+plotter=Plotter(x_axis_unit='sequences', legend_loc=None)
 plotter.plot(parsers=[p1, p2], colors=['blue', 'green'], labels=['PRAME', 'R0'] )
 
 #seqs_list=seqs.get_sequence_list()
@@ -36,12 +37,6 @@ aa_map.write("C:/Nextera/div/ab_roberta/EXPLORER/heavy/extracted_r0_n150000_seqs
 print('d')
 
 exit(0)
-
-
-
-
-
-
 
 
 def plot_inference_results_2(fns, colors, labels, cutoff, above, prob0, inc, sort_on_prob0):
@@ -54,7 +49,9 @@ def plot_inference_results_2(fns, colors, labels, cutoff, above, prob0, inc, sor
         results = ifrs.get_sorted_list(inc, sort_on_prob0)
         _plot_inference_results(results, colors[c_index], labels[c_index])
         c_index += 1
-    plt.legend(loc='upper right')
+    #plt.legend(loc='upper right')
+    plt.xlabel('Sequences')
+    plt.ylabel('Probability')
     plt.show()
 
 def _plot_inference_results(results, color, label):
@@ -93,6 +90,6 @@ def plot_inference_results(fns, colors, cutoff, above, prob0, inc, sort_on_prob0
 fns=["C:/Nextera/div/ab_roberta/mage_prame_vs_tus/out/mage_indices",
      "C:/Nextera/div/ab_roberta/mage_prame_vs_tus/out/prame_indices"]
 colors=['red','blue']
-plot_inference_results_2(fns, colors, ['MAGE', 'PRAME'], 0.0,True, True, False, True)
+plot_inference_results_2(fns, colors, ['MAGE', 'PRAME'], 0.8,True, True, False, True)
 #plot_inference_results(fns, colors, 0.0, True, True, False, True)
 
